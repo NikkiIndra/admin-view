@@ -13,6 +13,7 @@ class TextFromFieldTemplate extends StatelessWidget {
     this.isPasswordHidden = true,
     this.onToggle,
     required this.controller,
+    this.validator,
   });
 
   final String hintText;
@@ -23,12 +24,18 @@ class TextFromFieldTemplate extends StatelessWidget {
   final bool isPasswordHidden;
   final VoidCallback? onToggle;
 
+  /// Tambahan baru — validator
+  final FormFieldValidator<String>? validator;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextFormField(
           controller: controller,
+          keyboardType: keyboardType,
+          obscureText: isPassword ? isPasswordHidden : obscureText,
+          validator: validator, // <-- gunakan di sini
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: AppStyles.bodyTextBlack.copyWith(
@@ -37,17 +44,16 @@ class TextFromFieldTemplate extends StatelessWidget {
             ),
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(
-              vertical: 10,
+              vertical: 15,
               horizontal: 12,
             ),
-
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: AppColors.bluePrimary),
             ),
             fillColor: AppColors.white35,
             filled: true,
@@ -62,8 +68,6 @@ class TextFromFieldTemplate extends StatelessWidget {
                   )
                 : null,
           ),
-          keyboardType: keyboardType,
-          obscureText: isPassword ? isPasswordHidden : obscureText,
         ),
         const SizedBox(height: 10),
       ],

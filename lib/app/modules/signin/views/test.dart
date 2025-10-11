@@ -1,93 +1,34 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
+import 'package:multi_admin/app/widgets/textfromfield.dart';
 
-import '../../../widgets/textfromfield.dart';
 import '../controllers/signin_controller.dart';
 
-class SigninView extends GetView<SigninController> {
-  const SigninView({super.key});
+class SignInPage2 extends StatelessWidget {
+  const SignInPage2({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isSmallScreen = constraints.maxWidth < 800;
+    final bool isSmallScreen = MediaQuery.of(context).size.width < 600;
 
-        return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/images/bg2.png"),
-                fit: BoxFit.cover,
+    return Scaffold(
+      body: Center(
+        child: isSmallScreen
+            ? const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [_Logo(), _FormContent()],
+              )
+            : Container(
+                padding: const EdgeInsets.all(32.0),
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: const Row(
+                  children: [
+                    Expanded(child: _Logo()),
+                    Expanded(child: Center(child: _FormContent())),
+                  ],
+                ),
               ),
-            ),
-            child: Center(
-              child: SingleChildScrollView(
-                child: isSmallScreen
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Gambar pindah ke atas saat layar kecil
-                          Image.asset(
-                            "assets/images/pose2.png",
-                            width: 250,
-                            height: 250,
-                          ),
-                          const SizedBox(height: 20),
-                          const _Logo(),
-                          const SizedBox(height: 16),
-                          const _FormContent(),
-                        ],
-                      )
-                    : Container(
-                        padding: const EdgeInsets.all(32),
-                        constraints: const BoxConstraints(
-                          maxWidth: 900,
-                          maxHeight: 600,
-                        ),
-                        child: Row(
-                          children: [
-                            // sisi kiri: logo
-                            const Expanded(child: _Logo()),
-                            const SizedBox(width: 20),
-                            // sisi kanan: form + karakter
-                            Expanded(
-                              child: Stack(
-                                alignment: Alignment.centerRight,
-                                children: [
-                                  Obx(() {
-                                    final bool shouldFloat =
-                                        controller.isFieldActive.value;
-
-                                    return AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 400,
-                                      ),
-                                      transform: Matrix4.translationValues(
-                                        -100,
-                                        shouldFloat ? 0 : -205,
-                                        0,
-                                      ),
-                                      child: Image.asset(
-                                        "assets/images/pose2.png",
-                                        width: 250,
-                                        height: 250,
-                                      ),
-                                    );
-                                  }),
-                                  const Center(child: _FormContent()),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        );
-      },
+      ),
     );
   }
 }
@@ -103,7 +44,7 @@ class _Logo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
-          "assets/images/logo.ico",
+          "assets/images/logo.png",
           width: isSmallScreen ? 100 : 200,
           height: isSmallScreen ? 100 : 200,
           fit: BoxFit.contain,
@@ -149,7 +90,6 @@ class __FormContentState extends State<_FormContent> {
               validator: (value) {
                 // add email validation
                 if (value == null || value.isEmpty) {
-                  controller.isFieldActive.value = false;
                   return 'Please enter some text';
                 }
 
@@ -157,7 +97,6 @@ class __FormContentState extends State<_FormContent> {
                   r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
                 ).hasMatch(value);
                 if (!emailValid) {
-                  controller.isFieldActive.value = false;
                   return 'Please enter a valid email';
                 }
 
@@ -172,12 +111,10 @@ class __FormContentState extends State<_FormContent> {
               controller: controller.katasandiC,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  controller.isFieldActive.value = false;
                   return 'Please enter some text';
                 }
 
                 if (value.length < 6) {
-                  controller.isFieldActive.value = false;
                   return 'Password must be at least 6 characters';
                 }
                 return null;

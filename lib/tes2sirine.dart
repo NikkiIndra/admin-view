@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ReportScreen extends StatefulWidget {
   final String token; // JWT token setelah login
-  ReportScreen({required this.token});
+  const ReportScreen({super.key, required this.token});
 
   @override
   _ReportScreenState createState() => _ReportScreenState();

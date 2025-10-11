@@ -49,6 +49,8 @@ class MyApp extends StatelessWidget {
   // Change this to your flask server ip if different
   static const String baseUrl = 'http://192.168.0.99:5000';
 
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     // load token on start
@@ -68,6 +70,8 @@ class MyApp extends StatelessWidget {
 }
 
 class RoleChoiceScreen extends StatefulWidget {
+  const RoleChoiceScreen({super.key});
+
   @override
   _RoleChoiceScreenState createState() => _RoleChoiceScreenState();
 }
@@ -134,7 +138,7 @@ class _RoleChoiceScreenState extends State<RoleChoiceScreen> {
 /// ------------------ REGISTER SCREEN ------------------
 class RegisterScreen extends StatefulWidget {
   final String mode; // 'user' or 'admin'
-  const RegisterScreen({Key? key, required this.mode}) : super(key: key);
+  const RegisterScreen({super.key, required this.mode});
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -393,6 +397,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
 /// ------------------ HOME SCREEN ------------------
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthState>(context);
@@ -439,6 +445,8 @@ class HomeScreen extends StatelessWidget {
 
 /// ------------------ Admin latest report screen (example) ------------------
 class LatestReportScreen extends StatefulWidget {
+  const LatestReportScreen({super.key});
+
   @override
   _LatestReportScreenState createState() => _LatestReportScreenState();
 }

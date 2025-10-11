@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:get/get.dart';
 import '../../../data/service/admin_service.dart';
 
-class AdminViewController extends GetxController {
+class AdminController extends GetxController {
   final AdminService adminService = Get.find<AdminService>();
 
   var loading = false.obs;

@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
-
 import '../../../data/service/api_service.dart';
 
 class SigninController extends GetxController {
   var isChecked = false.obs;
   var isPasswordHidden = true.obs;
   var loading = false.obs;
+  var isFieldActive = false.obs;
 
   final emailC = TextEditingController();
   final katasandiC = TextEditingController();
@@ -18,25 +18,41 @@ class SigninController extends GetxController {
     super.onClose();
   }
 
-  void login() async {
-    loading.value = true;
-    final res = await ApiService.post("login", {
-      "email": emailC.text,
-      "katasandi": katasandiC.text,
-    });
-    loading.value = false;
+  Future<void> login() async {
+    try {
+      loading.value = true;
 
-    if (res["success"] == true && res["access_token"] != null) {
-      await ApiService.saveToken(res["access_token"]);
+      final res = await ApiService.post("login", {
+        "email": emailC.text.trim(),
+        "katasandi": katasandiC.text,
+      });
 
-      final user = res["user"];
-      if (user["role"] == "admin") {
-        Get.offAllNamed("/admin-view", arguments: user);
+      loading.value = false;
+
+      if (res["success"] == true && res["access_token"] != null) {
+        final token = res["access_token"];
+        print("✅ Token diterima dari server: $token");
+
+        // simpan token ke secure storage
+        await ApiService.saveToken(token);
+        print("🔐 Token disimpan ke secure storage");
+
+        // ambil data user dari response
+        final user = res["user"];
+        print("👤 Login sebagai: ${user["nama_lengkap"]} (${user["role"]})");
+
+        // arahkan halaman sesuai role
+        if (user["role"] == "admin") {
+          Get.offAllNamed("/admin-view", arguments: user);
+        } else {
+          Get.offAllNamed("/user-view", arguments: user);
+        }
       } else {
-        Get.offAllNamed("/user-view", arguments: user);
+        Get.snackbar("Gagal", res["message"] ?? "Login error");
       }
-    } else {
-      Get.snackbar("Gagal", res["message"] ?? "Login error");
+    } catch (e) {
+      loading.value = false;
+      Get.snackbar("Error", "Server sedang tidur");
     }
   }
 }

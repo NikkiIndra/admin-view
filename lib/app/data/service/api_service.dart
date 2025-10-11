@@ -16,6 +16,7 @@ class ApiService {
     final headers = {"Content-Type": "application/json"};
     if (auth) {
       final token = await _storage.read(key: "access_token");
+      print("🔑 Token dikirim ke API: $token");
       if (token != null) headers['Authorization'] = 'Bearer $token';
     }
     final resp = await http.get(url, headers: headers);
