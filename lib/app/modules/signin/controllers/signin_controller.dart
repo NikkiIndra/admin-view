@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:multi_admin/app/routes/app_pages.dart';
 import '../../../data/service/api_service.dart';
 
 class SigninController extends GetxController {
@@ -43,16 +44,18 @@ class SigninController extends GetxController {
 
         // arahkan halaman sesuai role
         if (user["role"] == "admin") {
-          Get.offAllNamed("/admin-view", arguments: user);
+          Get.offAllNamed(Routes.NAVBAR, arguments: user);
         } else {
           Get.offAllNamed("/user-view", arguments: user);
         }
       } else {
         Get.snackbar("Gagal", res["message"] ?? "Login error");
       }
-    } catch (e) {
+    } catch (e, s) {
       loading.value = false;
-      Get.snackbar("Error", "Server sedang tidur");
+      print("❌ Error saat login: $e");
+      print("Stack trace: $s");
+      Get.snackbar("Error", "Server sedang tidur: $e");
     }
   }
 }

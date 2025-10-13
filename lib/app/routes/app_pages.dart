@@ -1,13 +1,15 @@
 import 'package:get/get.dart';
-import '../modules/admin_view/bindings/admin_view_binding.dart';
+import 'package:multi_admin/app/modules/navbar/bindings/navbar_binding.dart';
+import 'package:multi_admin/app/modules/navbar/views/navbar_view.dart';
+import 'package:multi_admin/app/modules/news_uploads/views/news_uploads_view.dart';
+import 'package:multi_admin/app/modules/settings/views/settings_view.dart';
 import '../modules/admin_view/views/admin_view_view.dart';
-import '../modules/report_history/bindings/report_history_binding.dart';
+import '../modules/create_news/views/create_news_view.dart';
 import '../modules/report_history/views/report_history_view.dart';
 import '../modules/sign_up/bindings/sign_up_binding.dart';
 import '../modules/sign_up/views/sign_up_view.dart';
 import '../modules/signin/bindings/signin_binding.dart';
 import '../modules/signin/views/signin_view.dart';
-import '../modules/tren_report_location/bindings/tren_report_location_binding.dart';
 import '../modules/tren_report_location/views/tren_report_location_view.dart';
 import '../modules/user_detail/bindings/user_detail_binding.dart';
 import '../modules/user_detail/views/user_detail_view.dart';
@@ -26,11 +28,6 @@ class AppPages {
       binding: SigninBinding(),
     ),
     GetPage(
-      name: _Paths.ADMIN_VIEW,
-      page: () => AdminView(),
-      binding: AdminBinding(),
-    ),
-    GetPage(
       name: _Paths.SINGUP,
       page: () => const SignUpView(),
       binding: SignUpBinding(),
@@ -45,5 +42,17 @@ class AppPages {
       page: () => const TrenReportLocationView(),
     ),
     GetPage(name: _Paths.REPORT_HISTORY, page: () => ReportHistoryView()),
+    GetPage(
+      name: _Paths.NAVBAR,
+      page: () => NavbarView(),
+      binding: NavbarBinding(),
+      children: [
+        // Tambahkan nested routes di sini
+        GetPage(name: _Paths.ADMIN_VIEW, page: () => AdminView()),
+        GetPage(name: _Paths.CREATE_NEWS, page: () => CreateNewsView()),
+        GetPage(name: _Paths.NEWS_UPLOADS, page: () => NewsUploadsView()),
+        GetPage(name: _Paths.SETTINGS, page: () => SettingsView()),
+      ],
+    ),
   ];
 }

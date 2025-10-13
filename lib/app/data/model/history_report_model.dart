@@ -8,6 +8,7 @@ class HistoryReportModel {
   double? longitude;
   String? namaLengkap;
   int? desa_id;
+  DateTime? createdDate;
 
   HistoryReportModel({
     this.id,
@@ -19,9 +20,27 @@ class HistoryReportModel {
     this.longitude,
     this.namaLengkap,
     this.desa_id,
+    this.createdDate,
   });
 
   factory HistoryReportModel.fromJson(Map<String, dynamic> json) {
+    DateTime? parsedDate;
+    if (json['created_at'] != null) {
+      try {
+        // PERBAIKAN: Coba parse string, dan konversi ke waktu lokal.
+        // Ini akan mengatasi masalah jika timestamp server dikirim
+        // tanpa indikator zona waktu yang benar.
+        // Jika server mengirim UTC, Dart akan mengkonversinya dengan benar.
+        // Kita HILANGKAN .toUtc().toLocal() yang bisa menyebabkan double konversi
+        // jika string dari server sudah dianggap waktu lokal.
+        parsedDate = DateTime.parse(
+          json['created_at'],
+        ).toLocal(); // Disederhanakan
+      } catch (e) {
+        print('Error parsing date: ${json['created_at']}');
+      }
+    }
+
     return HistoryReportModel(
       id: json['id'],
       description: json['description'],
@@ -32,6 +51,7 @@ class HistoryReportModel {
       latitude: json['latitude'],
       longitude: json['longitude'],
       namaLengkap: json['reporter']?['name'],
+      createdDate: parsedDate,
     );
   }
 }

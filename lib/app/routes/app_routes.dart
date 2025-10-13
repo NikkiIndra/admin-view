@@ -9,6 +9,10 @@ abstract class Routes {
   static const USER_DETAIL = _Paths.USER_DETAIL;
   static const TREN_REPORT_LOCATION = _Paths.TREN_REPORT_LOCATION;
   static const REPORT_HISTORY = _Paths.REPORT_HISTORY;
+  static const NAVBAR = _Paths.NAVBAR;
+  static const CREATE_NEWS = _Paths.CREATE_NEWS;
+  static const NEWS_UPLOADS = _Paths.NEWS_UPLOADS;
+  static const SETTINGS = _Paths.SETTINGS;
 }
 
 abstract class _Paths {
@@ -19,4 +23,8 @@ abstract class _Paths {
   static const USER_DETAIL = '/user-detail';
   static const TREN_REPORT_LOCATION = '/tren-report-location';
   static const REPORT_HISTORY = '/report-history';
+  static const NAVBAR = '/navbar';
+  static const CREATE_NEWS = '/create-news';
+  static const NEWS_UPLOADS = '/news-uploads';
+  static const SETTINGS = '/settings';
 }
