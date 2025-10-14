@@ -48,7 +48,7 @@ class NewsDetailView extends StatelessWidget {
                         news.imageUrl!,
                         width: 400,
                         height: 300,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         errorBuilder: (context, error, stack) =>
                             const SizedBox(),
                       )
@@ -91,7 +91,6 @@ class NewsDetailView extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-
               // 🔹 Deskripsi panjang
               Expanded(
                 child: SingleChildScrollView(

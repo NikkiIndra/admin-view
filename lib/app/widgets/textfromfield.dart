@@ -14,8 +14,13 @@ class TextFromFieldTemplate extends StatelessWidget {
     this.onToggle,
     required this.controller,
     this.validator,
+    this.onTap,
+    this.onChanged,
+    this.errorText,
   });
 
+  final Function()? onTap;
+  final Function(String)? onChanged;
   final String hintText;
   final TextEditingController? controller;
   final TextInputType keyboardType;
@@ -26,12 +31,15 @@ class TextFromFieldTemplate extends StatelessWidget {
 
   /// Tambahan baru — validator
   final FormFieldValidator<String>? validator;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         TextFormField(
+          onTap: onTap,
+          onChanged: onChanged,
           controller: controller,
           keyboardType: keyboardType,
           obscureText: isPassword ? isPasswordHidden : obscureText,
@@ -57,6 +65,7 @@ class TextFromFieldTemplate extends StatelessWidget {
             ),
             fillColor: AppColors.white35,
             filled: true,
+            errorText: errorText,
             suffixIcon: isPassword
                 ? IconButton(
                     icon: Icon(

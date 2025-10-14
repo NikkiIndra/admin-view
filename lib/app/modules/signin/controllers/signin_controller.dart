@@ -1,25 +1,71 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:multi_admin/app/routes/app_pages.dart';
 import '../../../data/service/api_service.dart';
+import '../../../routes/app_pages.dart';
 
 class SigninController extends GetxController {
   var isChecked = false.obs;
   var isPasswordHidden = true.obs;
   var loading = false.obs;
-  var isFieldActive = false.obs;
+
+  final isFieldActive = false.obs;
+  final emailError = ''.obs;
+  final passwordError = ''.obs;
 
   final emailC = TextEditingController();
   final katasandiC = TextEditingController();
 
+  final emailFocus = FocusNode();
+  final passwordFocus = FocusNode();
+
   @override
-  void onClose() {
-    emailC.dispose();
-    katasandiC.dispose();
-    super.onClose();
+  void onInit() {
+    super.onInit();
+
+    // Bersihkan error saat mengetik
+    emailC.addListener(() {
+      if (emailError.isNotEmpty) emailError.value = '';
+    });
+    katasandiC.addListener(() {
+      if (passwordError.isNotEmpty) passwordError.value = '';
+    });
+
+    // Bersihkan error saat field di-klik
+    emailFocus.addListener(() {
+      if (emailFocus.hasFocus) emailError.value = '';
+    });
+    passwordFocus.addListener(() {
+      if (passwordFocus.hasFocus) passwordError.value = '';
+    });
+  }
+
+  bool validateFields() {
+    bool valid = true;
+
+    if (emailC.text.isEmpty) {
+      emailError.value = "Please enter your email";
+      valid = false;
+    } else if (!RegExp(
+      r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$",
+    ).hasMatch(emailC.text)) {
+      emailError.value = "Please enter a valid email";
+      valid = false;
+    }
+
+    if (katasandiC.text.isEmpty) {
+      passwordError.value = "Please enter your password";
+      valid = false;
+    } else if (katasandiC.text.length < 6) {
+      passwordError.value = "Password must be at least 6 characters";
+      valid = false;
+    }
+
+    return valid;
   }
 
   Future<void> login() async {
+    if (!validateFields()) return;
+
     try {
       loading.value = true;
 
@@ -32,17 +78,9 @@ class SigninController extends GetxController {
 
       if (res["success"] == true && res["access_token"] != null) {
         final token = res["access_token"];
-        print("✅ Token diterima dari server: $token");
-
-        // simpan token ke secure storage
         await ApiService.saveToken(token);
-        print("🔐 Token disimpan ke secure storage");
-
-        // ambil data user dari response
         final user = res["user"];
-        print("👤 Login sebagai: ${user["nama_lengkap"]} (${user["role"]})");
 
-        // arahkan halaman sesuai role
         if (user["role"] == "admin") {
           Get.offAllNamed(Routes.NAVBAR, arguments: user);
         } else {
@@ -54,7 +92,7 @@ class SigninController extends GetxController {
     } catch (e, s) {
       loading.value = false;
       print("❌ Error saat login: $e");
-      print("Stack trace: $s");
+      print(s);
       Get.snackbar("Error", "Server sedang tidur: $e");
     }
   }

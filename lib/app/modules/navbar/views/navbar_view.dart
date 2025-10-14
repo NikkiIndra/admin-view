@@ -1,4 +1,5 @@
 // navbar_view.dart
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/navbar_controller.dart';
@@ -145,23 +146,6 @@ class NavbarView extends GetView<NavbarController> {
                                         size: 20,
                                       ),
                                       const SizedBox(height: 4),
-                                      // Text label kecil di bawah icon
-                                      // Text(
-                                      //   controller.navItems[index],
-                                      //   style: TextStyle(
-                                      //     color:
-                                      //         controller.currentIndex.value ==
-                                      //             index
-                                      //         ? Colors.white
-                                      //         : AppColors.darkBlue.withOpacity(
-                                      //             0.7,
-                                      //           ),
-                                      //     fontSize: 10,
-                                      //     fontWeight: FontWeight.w500,
-                                      //   ),
-                                      //   textAlign: TextAlign.center,
-                                      //   maxLines: 2,
-                                      // ),
                                     ],
                                   ),
                                 ),
@@ -189,13 +173,13 @@ class NavbarView extends GetView<NavbarController> {
       case 0: // Dashboard
         return Icons.dashboard;
       case 1: // Create News
-        return Icons.create;
+        return CupertinoIcons.create;
       case 2: // News Uploads
-        return Icons.upload;
+        return CupertinoIcons.collections;
       case 3: // Settings
-        return Icons.settings;
+        return CupertinoIcons.settings;
       default:
-        return Icons.circle;
+        return CupertinoIcons.circle;
     }
   }
 }

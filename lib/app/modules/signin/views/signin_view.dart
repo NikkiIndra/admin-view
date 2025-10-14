@@ -143,47 +143,69 @@ class __FormContentState extends State<_FormContent> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextFromFieldTemplate(
-              hintText: "Username Or Email",
-              controller: controller.emailC,
-              validator: (value) {
-                // add email validation
-                if (value == null || value.isEmpty) {
-                  controller.isFieldActive.value = false;
-                  return 'Please enter some text';
-                }
+            Obx(
+              () => TextField(
+                style: const TextStyle(color: Colors.white),
+                controller: controller.emailC,
+                focusNode: controller.emailFocus,
+                decoration: InputDecoration(
+                  hintText: "Username or Email",
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
 
-                bool emailValid = RegExp(
-                  r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
-                ).hasMatch(value);
-                if (!emailValid) {
-                  controller.isFieldActive.value = false;
-                  return 'Please enter a valid email';
-                }
-
-                return null;
-              },
-              keyboardType: TextInputType.emailAddress,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
+                  fillColor: Colors.white10,
+                  filled: true,
+                  errorText: controller.emailError.value.isEmpty
+                      ? null
+                      : controller.emailError.value,
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
             ),
+            const SizedBox(height: 16),
+            Obx(
+              () => TextField(
+                style: const TextStyle(color: Colors.white),
+                controller: controller.katasandiC,
+                focusNode: controller.passwordFocus,
+                obscureText: controller.isPasswordHidden.value,
+                decoration: InputDecoration(
+                  hintText: "Enter your password",
+                  border: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
 
-            _gap(),
-            TextFromFieldTemplate(
-              hintText: "Enter your password",
-              controller: controller.katasandiC,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  controller.isFieldActive.value = false;
-                  return 'Please enter some text';
-                }
-
-                if (value.length < 6) {
-                  controller.isFieldActive.value = false;
-                  return 'Password must be at least 6 characters';
-                }
-                return null;
-              },
-              isPasswordHidden: controller.isPasswordHidden.value,
-              onToggle: controller.isPasswordHidden.toggle,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                    borderSide: BorderSide(color: Colors.white, width: 2),
+                  ),
+                  fillColor: Colors.white10,
+                  filled: true,
+                  errorText: controller.passwordError.value.isEmpty
+                      ? null
+                      : controller.passwordError.value,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      controller.isPasswordHidden.value
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    style: ButtonStyle(
+                      iconColor: controller.isPasswordHidden.value
+                          ? WidgetStatePropertyAll(Colors.black)
+                          : WidgetStatePropertyAll(Colors.white),
+                    ),
+                    onPressed: () => controller.isPasswordHidden.toggle(),
+                  ),
+                ),
+              ),
             ),
 
             _gap(),

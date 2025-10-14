@@ -180,7 +180,7 @@ class CreateNewsView extends GetView<CreateNewsController> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: SizedBox(
         width: 180,
-        height: 60,
+        height: 80,
         child: FloatingActionButton.extended(
           onPressed: () async {
             if (controller.titleC.text.isEmpty ||
@@ -188,10 +188,8 @@ class CreateNewsView extends GetView<CreateNewsController> {
               Get.snackbar("Validasi", "Judul dan isi berita wajib diisi");
               return;
             }
-
             await controller.uploadNews();
           },
-
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -199,7 +197,11 @@ class CreateNewsView extends GetView<CreateNewsController> {
           label: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.save_rounded, color: Colors.black54, size: 28),
+              const Icon(
+                CupertinoIcons.tray_arrow_up,
+                color: Colors.black54,
+                size: 24,
+              ),
               const SizedBox(width: 10),
               Text(
                 'Unggah',

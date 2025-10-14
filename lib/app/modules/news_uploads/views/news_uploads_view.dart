@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:multi_admin/app/modules/navbar/views/navbar_view.dart';
@@ -12,6 +14,7 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        constraints: const BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -36,14 +39,18 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
             }
 
             final news = controller.newsList;
+            if (news.isEmpty) {
+              return const Center(child: Text("Tidak ada berita tersedia."));
+            }
+
             final mainNews = news.first;
-            final subNews = news.length > 3 ? news.sublist(1, 3) : [];
+            final subNews = news.length > 1
+                ? news.sublist(1, min(3, news.length))
+                : [];
             final rightNews = news.length > 3
-                ? news.sublist(3, 9)
+                ? news.sublist(3, min(9, news.length))
                 : news.skip(1).toList();
-            final gridNews = news.length > 9
-                ? news.sublist(9)
-                : []; // sisanya di bawah
+            final gridNews = news.length > 9 ? news.sublist(9) : [];
 
             return SingleChildScrollView(
               child: Column(
@@ -152,7 +159,7 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          color: Colors.transparent.withOpacity(0.2),
+          // color: Colors.transparent,
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -162,20 +169,25 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
               children: [
                 Flexible(
                   flex: 6,
-                  child: (news.imageUrl != null && news.imageUrl!.isNotEmpty)
-                      ? Image.network(
-                          news.imageUrl!,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stack) =>
-                              Container(color: Colors.grey[800]),
-                        )
-                      : _buildImagePlaceholder(),
+                  child: Container(
+                    color: Colors.white10,
+                    child: (news.imageUrl != null && news.imageUrl!.isNotEmpty)
+                        ? Image.network(
+                            news.imageUrl!,
+                            width: double.infinity,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stack) =>
+                                Container(color: Colors.grey[800]),
+                          )
+                        : _buildImagePlaceholder(),
+                  ),
                 ),
                 Flexible(
                   flex: 3,
                   child: Container(
-                    decoration: const BoxDecoration(color: AppColors.white35),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent.withOpacity(0.3),
+                    ),
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.all(12),
@@ -211,7 +223,6 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
                 ),
               ],
             ),
-
             // 🔹 Tombol titik tiga
             Positioned(right: 8, top: 8, child: _buildPopupMenu(news)),
           ],
@@ -226,7 +237,7 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
       onTap: () => Get.to(() => const NewsDetailView(), arguments: news),
       child: Container(
         decoration: BoxDecoration(
-          // color: AppColors.darkBlue,
+          color: Colors.white10,
           borderRadius: BorderRadius.circular(12),
         ),
         clipBehavior: Clip.antiAlias,
@@ -252,7 +263,7 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
                   flex: 3,
                   child: Container(
                     width: double.infinity,
-                    color: Colors.transparent.withOpacity(0.2),
+                    color: Colors.transparent.withOpacity(0.5),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8.0,
                       vertical: 6.0,

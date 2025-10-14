@@ -39,7 +39,7 @@ class CreateNewsController extends GetxController {
       request.fields['source'] = sourceC.text;
 
       // Jika ada gambar
-      for (var i = 0; i < images.length && i < 2; i++) {
+      for (var i = 0; i < images.length && i < 1; i++) {
         final file = images[i];
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -77,7 +77,7 @@ class CreateNewsController extends GetxController {
 
   Future<void> pickImages() async {
     // Batasi maksimal 2 gambar
-    if (images.length >= 2) {
+    if (images.isNotEmpty) {
       Get.snackbar(
         'Batas Gambar',
         'Maksimal hanya 2 gambar yang dapat diunggah.',
