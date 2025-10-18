@@ -5,8 +5,11 @@ import 'package:multi_admin/app/modules/navbar/controllers/navbar_controller.dar
 import 'package:multi_admin/app/modules/news_uploads/controllers/news_uploads_controller.dart';
 import 'package:multi_admin/app/modules/settings/controllers/settings_controller.dart';
 import 'package:multi_admin/app/modules/tren_report_location/controllers/tren_report_location_controller.dart';
+import 'package:multi_admin/app/controller/chart_controller.dart';
 
+import '../../controller/report_summary_controller.dart';
 import '../../modules/report_history/controllers/report_history_controller.dart';
+import '../../modules/user_detail/controllers/user_detail_controller.dart';
 
 class GlobalBindings extends Bindings {
   @override
@@ -39,5 +42,14 @@ class GlobalBindings extends Bindings {
       () => NavbarController(),
       fenix: true, // Tambahkan ini
     );
+    Get.lazyPut<ChartController>(
+      () => ChartController(),
+      fenix: true, // Tambahkan ini
+    );
+    Get.lazyPut<ReportSummaryController>(
+      () => ReportSummaryController(),
+      fenix: true, // Tambahkan ini
+    );
+    Get.lazyPut<UserDetailController>(() => UserDetailController());
   }
 }

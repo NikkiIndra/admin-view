@@ -9,6 +9,7 @@ class HistoryReportModel {
   String? namaLengkap;
   int? desa_id;
   DateTime? createdDate;
+  String? image;
 
   HistoryReportModel({
     this.id,
@@ -21,24 +22,39 @@ class HistoryReportModel {
     this.namaLengkap,
     this.desa_id,
     this.createdDate,
+    this.image,
   });
 
   factory HistoryReportModel.fromJson(Map<String, dynamic> json) {
     DateTime? parsedDate;
     if (json['created_at'] != null) {
       try {
-        // PERBAIKAN: Coba parse string, dan konversi ke waktu lokal.
-        // Ini akan mengatasi masalah jika timestamp server dikirim
-        // tanpa indikator zona waktu yang benar.
-        // Jika server mengirim UTC, Dart akan mengkonversinya dengan benar.
-        // Kita HILANGKAN .toUtc().toLocal() yang bisa menyebabkan double konversi
-        // jika string dari server sudah dianggap waktu lokal.
-        parsedDate = DateTime.parse(
-          json['created_at'],
-        ).toLocal(); // Disederhanakan
+        parsedDate = DateTime.parse(json['created_at']).toLocal();
       } catch (e) {
         print('Error parsing date: ${json['created_at']}');
       }
+    }
+
+    // Handle konversi latitude dan longitude
+    double? parseCoordinate(dynamic value) {
+      if (value == null) return null;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
+    // Handle berbagai kemungkinan field name untuk nama lengkap
+    String? getNameFromJson(Map<String, dynamic> json) {
+      // Coba berbagai kemungkinan field name
+      return json['nama_lengkap'] ??
+          json['nama_lengkap'] ??
+          json['name'] ??
+          json['nama'] ??
+          json['reporter_name'] ??
+          json['user_name'] ??
+          (json['reporter'] is Map ? json['reporter']['name'] : null) ??
+          (json['user'] is Map ? json['user']['nama_lengkap'] : null);
     }
 
     return HistoryReportModel(
@@ -48,9 +64,9 @@ class HistoryReportModel {
       category: json['category'],
       ttsUrl: json['tts_url_full'] ?? json['tts_url'],
       createdAt: json['created_at'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      namaLengkap: json['reporter']?['name'],
+      latitude: parseCoordinate(json['latitude']),
+      longitude: parseCoordinate(json['longitude']),
+      namaLengkap: getNameFromJson(json), // Gunakan fungsi helper
       createdDate: parsedDate,
     );
   }

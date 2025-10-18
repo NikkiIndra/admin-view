@@ -1,20 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-
+import '../../../data/service/api_service.dart';
 import '../../news_uploads/controllers/news_uploads_controller.dart';
 
 class CreateNewsController extends GetxController {
   final ImagePicker _picker = ImagePicker();
+
   final titleC = TextEditingController();
   final descC = TextEditingController();
   final sourceC = TextEditingController(text: 'Admin Desa');
 
   final isLoading = false.obs;
   final images = <XFile>[].obs;
-  final storage = const FlutterSecureStorage();
 
   void clear() {
     titleC.clear();
@@ -25,72 +24,92 @@ class CreateNewsController extends GetxController {
   }
 
   Future<void> uploadNews() async {
+    if (titleC.text.isEmpty || descC.text.isEmpty) {
+      Get.snackbar("Peringatan", "Judul dan deskripsi tidak boleh kosong");
+      return;
+    }
+
+    final session = await ApiService.getAdminSession();
+    print("🔍 Session Check:");
+    print("   - admin_id: ${session['admin_id']}");
+    print("   - role: ${session['role']}");
+    print("   - desa_id: ${session['desa_id']}");
+
+    if (session['admin_id']!.isEmpty || session['role']!.isEmpty) {
+      Get.snackbar("Error", "Session tidak valid. Silakan login ulang.");
+      return;
+    }
+    isLoading.value = true;
+    // 🔍 DEBUG: Cek session sebelum upload
     try {
-      isLoading.value = true;
+      // 🔹 Siapkan data form
+      final fields = {
+        'title': titleC.text.trim(),
+        'description': descC.text.trim(),
+        'source': sourceC.text.trim(),
+      };
 
-      final token = await storage.read(key: "access_token");
-      final uri = Uri.parse("http://192.168.0.99:5000/upload-news-with-image");
+      // 🔹 Konversi XFile → File
+      final files = images.map((x) => File(x.path)).toList();
 
-      var request = http.MultipartRequest("POST", uri);
-      request.headers['Authorization'] = 'Bearer $token';
+      print("📤 Upload ke server:");
+      print("   Fields: $fields");
+      print("   Jumlah gambar: ${files.length}");
 
-      request.fields['title'] = titleC.text;
-      request.fields['description'] = descC.text;
-      request.fields['source'] = sourceC.text;
-
-      // Jika ada gambar
-      for (var i = 0; i < images.length && i < 1; i++) {
-        final file = images[i];
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'image',
-            file.path,
-            filename: file.path.split('/').last,
-          ),
-        );
-      }
-
-      final resp = await request.send();
-      final respBody = await resp.stream.bytesToString();
-      print("📡 Response: ${resp.statusCode} => $respBody");
+      // 🔹 Kirim ke server (multipart)
+      // final response = await ApiService.uploadMultipart(
+      //   "upload-news-with-image",
+      //   fields,
+      //   files,
+      //   auth: true, // agar otomatis kirim X-User-Id & X-User-Role
+      //   fileField: "image", // sesuaikan nama field di backend
+      // );
+      final response = await ApiService.uploadMultipartWithQueryAuth(
+        "upload-news-with-image",
+        fields,
+        files,
+        fileField: "image",
+      );
 
       isLoading.value = false;
+      print("📡 Response dari server: $response");
 
-      if (resp.statusCode == 201) {
-        Get.snackbar("✅ Berhasil", "Berita berhasil disimpan ke messages");
-
-        // 🔹 Kosongkan field & gambar
+      // 🔹 Validasi hasil response
+      if (response["success"] == true ||
+          response["status"] == 201 ||
+          response["message"]?.toString().toLowerCase().contains("berhasil") ==
+              true) {
+        Get.snackbar("✅ Berhasil", "Berita berhasil diunggah ke server.");
         clear();
 
-        // 🔹 Refresh daftar berita realtime
+        // 🔁 Refresh daftar berita kalau controller-nya aktif
         if (Get.isRegistered<NewsUploadsController>()) {
           Get.find<NewsUploadsController>().fetchNews();
         }
       } else {
-        Get.snackbar("Gagal", "Gagal mengupload berita: $respBody");
+        final msg = response["message"] ?? "Gagal mengupload berita.";
+        Get.snackbar("Gagal", msg.toString());
       }
     } catch (e) {
       isLoading.value = false;
-      Get.snackbar("Error", "Server error: $e");
+      print("❌ Error upload: $e");
+      Get.snackbar("Error", "Terjadi kesalahan: $e");
     }
   }
 
   Future<void> pickImages() async {
-    // Batasi maksimal 2 gambar
-    if (images.isNotEmpty) {
+    if (images.length >= 2) {
       Get.snackbar(
-        'Batas Gambar',
-        'Maksimal hanya 2 gambar yang dapat diunggah.',
+        "Batas Gambar",
+        "Maksimal hanya 2 gambar yang dapat diunggah.",
       );
       return;
     }
 
     final List<XFile> picked = await _picker.pickMultiImage(imageQuality: 80);
-
     if (picked.isNotEmpty) {
-      // Gabungkan dengan yang sudah ada tapi batasi maksimal 2
       final newList = [...images, ...picked];
-      images.value = newList.take(2).toList();
+      images.value = newList.take(2).toList(); // batasi 2 gambar saja
     }
   }
 

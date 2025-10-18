@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '../../../data/service/api_service.dart';
 import '../../../routes/app_pages.dart';
 
@@ -14,6 +15,8 @@ class SigninController extends GetxController {
 
   final emailC = TextEditingController();
   final katasandiC = TextEditingController();
+
+  final formKey = GlobalKey<FormState>();
 
   final emailFocus = FocusNode();
   final passwordFocus = FocusNode();
@@ -37,6 +40,13 @@ class SigninController extends GetxController {
     passwordFocus.addListener(() {
       if (passwordFocus.hasFocus) passwordError.value = '';
     });
+  }
+
+  @override
+  void onClose() {
+    emailC.dispose();
+    katasandiC.dispose();
+    super.onClose();
   }
 
   bool validateFields() {
@@ -76,24 +86,62 @@ class SigninController extends GetxController {
 
       loading.value = false;
 
-      if (res["success"] == true && res["access_token"] != null) {
-        final token = res["access_token"];
-        await ApiService.saveToken(token);
+      if (res["success"] == true && res["user"] != null) {
         final user = res["user"];
 
-        if (user["role"] == "admin") {
-          Get.offAllNamed(Routes.NAVBAR, arguments: user);
+        print("🧾 Data user login: $user");
+
+        // Ambil nilai dengan aman (pastikan tidak null dan dalam string)
+        final adminId = (user["id"] ?? user["user_id"] ?? "").toString();
+        final role = (user["role"] ?? "").toString();
+        final desaId = (user["desa_id"] ?? user["desaId"] ?? "").toString();
+        final email = (user["email"] ?? "").toString();
+
+        // Cegah simpan kosong
+        if (adminId.isEmpty || role.isEmpty) {
+          Get.snackbar("Login Error", "Data user tidak lengkap dari server.");
+          return;
+        }
+
+        // Simpan sesi
+        await ApiService.saveAdminSession({
+          "id": adminId,
+          "role": role,
+          "email": email,
+          "desa_id": desaId,
+        });
+        // 🔍 VERIFIKASI: Cek session setelah disimpan
+        final savedSession = await ApiService.getAdminSession();
+        print("✅ Session setelah disimpan:");
+        print("   - admin_id: ${savedSession['admin_id']}");
+        print("   - role: ${savedSession['role']}");
+        print("   - desa_id: ${savedSession['desa_id']}");
+        final box = GetStorage();
+        box.write('is_logged_in', true);
+        box.write('user_role', role);
+
+        print("✅ Session disimpan: id=$adminId, role=$role, desa=$desaId");
+
+        // Arahkan sesuai role
+        if (role == "admin") {
+          print(
+            "✅ Session benar-benar tersimpan: ${await ApiService.getAdminSession()}",
+          );
+          Get.offAllNamed(Routes.NAVBAR);
         } else {
-          Get.offAllNamed("/user-view", arguments: user);
+          Get.offAllNamed("/user-view");
         }
       } else {
-        Get.snackbar("Gagal", res["message"] ?? "Login error");
+        Get.snackbar(
+          "Login Gagal",
+          res["message"] ?? "Email atau kata sandi salah",
+        );
       }
     } catch (e, s) {
       loading.value = false;
       print("❌ Error saat login: $e");
       print(s);
-      Get.snackbar("Error", "Server sedang tidur: $e");
+      Get.snackbar("Error", "Tidak dapat terhubung ke server: $e");
     }
   }
 }

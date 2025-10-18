@@ -48,8 +48,6 @@ class TrenReportLocationController extends GetxController {
   Future<void> fetchTrenReport() async {
     try {
       isLoading.value = true;
-      final token = await ApiService.getToken();
-      print("🧩 Token dikirim ke API: $token");
 
       final res = await ApiService.get("messages/coords", auth: true);
       if (res["success"] == true && res["data"] != null) {

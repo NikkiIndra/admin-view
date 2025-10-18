@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:multi_admin/app/modules/navbar/views/navbar_view.dart';
 import 'package:multi_admin/app/modules/news_uploads/views/news_detail_view.dart';
 import '../../../data/model/news_model.dart';
 import '../controllers/news_uploads_controller.dart';

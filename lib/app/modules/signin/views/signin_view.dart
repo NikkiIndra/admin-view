@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
+import 'package:multi_admin/app/styles/apps_style.dart';
 
-import '../../../widgets/textfromfield.dart';
 import '../controllers/signin_controller.dart';
 
 class SigninView extends GetView<SigninController> {
@@ -145,21 +145,23 @@ class __FormContentState extends State<_FormContent> {
           children: [
             Obx(
               () => TextField(
-                style: const TextStyle(color: Colors.white),
+                style: AppStyles.bodyTextBlack.copyWith(fontSize: 15),
                 controller: controller.emailC,
                 focusNode: controller.emailFocus,
                 decoration: InputDecoration(
                   hintText: "Username or Email",
+                  hintStyle: AppStyles.bodyTextBlack.copyWith(fontSize: 15),
                   border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.white, width: 2),
+                    borderSide: BorderSide.none,
                   ),
 
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.white, width: 2),
+                    borderSide: BorderSide.none,
                   ),
-                  fillColor: Colors.white10,
+                  hoverColor: Colors.white,
+                  fillColor: Colors.white,
                   filled: true,
                   errorText: controller.emailError.value.isEmpty
                       ? null
@@ -171,22 +173,24 @@ class __FormContentState extends State<_FormContent> {
             const SizedBox(height: 16),
             Obx(
               () => TextField(
-                style: const TextStyle(color: Colors.white),
+                style: AppStyles.bodyTextBlack.copyWith(fontSize: 15),
                 controller: controller.katasandiC,
                 focusNode: controller.passwordFocus,
                 obscureText: controller.isPasswordHidden.value,
                 decoration: InputDecoration(
+                  hoverColor: Colors.white,
                   hintText: "Enter your password",
+                  hintStyle: AppStyles.bodyTextBlack.copyWith(fontSize: 15),
                   border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.white, width: 2),
+                    borderSide: BorderSide.none,
                   ),
 
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12)),
-                    borderSide: BorderSide(color: Colors.white, width: 2),
+                    borderSide: BorderSide.none,
                   ),
-                  fillColor: Colors.white10,
+                  fillColor: Colors.white,
                   filled: true,
                   errorText: controller.passwordError.value.isEmpty
                       ? null
@@ -198,9 +202,7 @@ class __FormContentState extends State<_FormContent> {
                           : Icons.visibility,
                     ),
                     style: ButtonStyle(
-                      iconColor: controller.isPasswordHidden.value
-                          ? WidgetStatePropertyAll(Colors.black)
-                          : WidgetStatePropertyAll(Colors.white),
+                      iconColor: WidgetStatePropertyAll(Colors.black),
                     ),
                     onPressed: () => controller.isPasswordHidden.toggle(),
                   ),

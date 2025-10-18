@@ -4,12 +4,18 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:multi_admin/app/modules/tren_report_location/controllers/tren_report_location_controller.dart';
 import 'package:multi_admin/app/routes/app_pages.dart';
+import 'package:multi_admin/app/styles/apps_style.dart';
 
+import '../../../controller/chart_controller.dart';
+import '../../../controller/report_summary_controller.dart';
+import '../../../widgets/grafik_multiline.dart';
+import '../../../widgets/report_summary.dart';
 import '../controllers/admin_view_controller.dart';
 
 class AdminView extends GetView<AdminController> {
   AdminView({super.key});
   final controllerTrenreport = Get.find<TrenReportLocationController>();
+  final controllerR = Get.find<ReportSummaryController>();
 
   // Hapus late final dan gunakan GetX reactive approach
   // int get totalReports => controllerTrenreport.reportPoints.length;
@@ -182,7 +188,7 @@ class AdminView extends GetView<AdminController> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Text(
-                                                "data Pelapor",
+                                                "Data Pelapor",
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 16,
@@ -206,7 +212,7 @@ class AdminView extends GetView<AdminController> {
                                                   ),
                                                 ),
                                                 child: Text(
-                                                  "data",
+                                                  "Lihat Data Pelapor",
                                                   style: TextStyle(
                                                     color: Colors.white,
                                                   ),
@@ -259,7 +265,7 @@ class AdminView extends GetView<AdminController> {
                                                     ),
                                                   ),
                                                   child: Text(
-                                                    "lihat",
+                                                    "lihat data warga",
                                                     style: TextStyle(
                                                       color: Colors.white,
                                                     ),
@@ -285,29 +291,53 @@ class AdminView extends GetView<AdminController> {
                                 color: Colors.white30,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: const [
-                                      _ReportSummary(
-                                        label: "Hari ini",
-                                        value: "23",
-                                      ),
-                                      _ReportSummary(
-                                        label: "Minggu-4",
-                                        value: "120",
-                                      ),
-                                      _ReportSummary(
-                                        label: "Bulan Juli",
-                                        value: "254",
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                              child: Obx(() {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Ringkasan Laporan Dalam Bulan Ini",
+                                      style: AppStyles.bodyTextWhite,
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        ReportSummary(
+                                          label: "Hari ini",
+                                          value: controllerR.isLoading.value
+                                              ? "0"
+                                              : controllerR.todayCount.value
+                                                    .toString(),
+                                          isLoading:
+                                              controllerR.isLoading.value,
+                                        ),
+                                        ReportSummary(
+                                          label: controllerR.currentWeek.value,
+                                          value: controllerR.isLoading.value
+                                              ? "0"
+                                              : controllerR.weekCount.value
+                                                    .toString(),
+                                          isLoading:
+                                              controllerR.isLoading.value,
+                                        ),
+                                        ReportSummary(
+                                          label:
+                                              "Bulan ${controllerR.currentMonth.value}",
+                                          value: controllerR.isLoading.value
+                                              ? "0"
+                                              : controllerR.monthCount.value
+                                                    .toString(),
+                                          isLoading:
+                                              controllerR.isLoading.value,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }),
                             ),
+                            const SizedBox(height: 16),
                           ],
                         ),
                       ),
@@ -322,22 +352,13 @@ class AdminView extends GetView<AdminController> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // Grafik tren waktu
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white30,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    "Grafik Tren Waktu",
-                                    style: TextStyle(color: Colors.white70),
-                                  ),
-                                ),
-                              ),
+                            GetBuilder<ChartController>(
+                              init: ChartController(),
+                              builder: (controller) {
+                                return const TimeTrendChart();
+                              },
                             ),
                             const SizedBox(height: 16),
-
                             // Statistik total laporan
                             Container(
                               height: 100,
@@ -363,30 +384,40 @@ class AdminView extends GetView<AdminController> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final controller = Get.find<ChartController>();
+          await controllerR.refreshSummary();
+          await controller.chartRefresh();
+          // Force UI update
+          controller.update();
+        },
+        child: Icon(Icons.refresh),
+      ),
     );
   }
 }
 
-class _ReportSummary extends StatelessWidget {
-  final String label;
-  final String value;
+// class _ReportSummary extends StatelessWidget {
+//   final String label;
+//   final String value;
 
-  const _ReportSummary({required this.label, required this.value});
+//   const _ReportSummary({required this.label, required this.value});
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.greenAccent,
-          ),
-        ),
-        Text(label, style: const TextStyle(color: Colors.white70)),
-      ],
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       children: [
+//         Text(
+//           value,
+//           style: const TextStyle(
+//             fontSize: 22,
+//             fontWeight: FontWeight.bold,
+//             color: Colors.greenAccent,
+//           ),
+//         ),
+//         Text(label, style: const TextStyle(color: Colors.white70)),
+//       ],
+//     );
+//   }
+// }

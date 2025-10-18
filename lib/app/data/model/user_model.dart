@@ -6,6 +6,8 @@ class UserModel {
   String? rw;
   String? blok;
   String? role;
+  String? createdAt;
+  String? phone;
   int? desa_id;
 
   UserModel({
@@ -16,6 +18,8 @@ class UserModel {
     this.rw,
     this.blok,
     this.role,
+    this.createdAt,
+    this.phone,
     this.desa_id,
   });
 
@@ -28,6 +32,8 @@ class UserModel {
     data['rw'] = rw;
     data['blok'] = blok;
     data['role'] = role;
+    data['createdAt'] = createdAt;
+    data['phone'] = phone;
     data['desa_id'] = desa_id;
     return data;
   }
@@ -41,6 +47,7 @@ class UserModel {
       rw: json['rw'],
       blok: json['blok'],
       role: json['role'],
+      phone: json['phone'],
       desa_id: json['desa_id'],
     );
   }

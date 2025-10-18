@@ -62,9 +62,9 @@ class CreateNewsView extends GetView<CreateNewsController> {
                     const SizedBox(width: 32),
 
                     // Bagian kanan (unggah gambar)
-                    Center(
-                      child: Expanded(
-                        flex: 2,
+                    Expanded(
+                      flex: 2,
+                      child: Center(
                         child: Obx(
                           () => Column(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -233,16 +233,19 @@ class CreateNewsView extends GetView<CreateNewsController> {
       maxLines: maxLines,
       decoration: InputDecoration(
         border: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: Colors.white54),
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+          borderSide: BorderSide(color: Colors.white),
         ),
         labelText: label,
-        labelStyle: AppStyles.bodyTextWhite.copyWith(color: Colors.white54),
+        labelStyle: AppStyles.bodyTextWhite.copyWith(
+          color: Colors.white,
+          fontSize: 18,
+        ),
         filled: true,
         focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.white),
         ),
-        fillColor: Colors.white10,
+        fillColor: Colors.white54,
         focusColor: Colors.white,
       ),
     );
