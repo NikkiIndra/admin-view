@@ -25,7 +25,6 @@ class NewsUploadsController extends GetxController {
       if (response['success'] == true) {
         final List<dynamic> data = response['data'] ?? [];
         newsList.value = data.map((e) => NewsModel.fromJson(e)).toList();
-
         // Debug URL gambar
         for (var n in newsList) {
           print('🖼️ Gambar berita: ${n.imageUrl}');

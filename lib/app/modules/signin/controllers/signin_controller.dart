@@ -128,8 +128,6 @@ class SigninController extends GetxController {
             "✅ Session benar-benar tersimpan: ${await ApiService.getAdminSession()}",
           );
           Get.offAllNamed(Routes.NAVBAR);
-        } else {
-          Get.offAllNamed("/user-view");
         }
       } else {
         Get.snackbar(

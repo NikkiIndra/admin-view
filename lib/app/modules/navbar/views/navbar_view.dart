@@ -2,8 +2,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../admin_view/views/adminView.dart';
 import '../controllers/navbar_controller.dart';
-import '../../admin_view/views/admin_view_view.dart';
 import '../../create_news/views/create_news_view.dart';
 import '../../news_uploads/views/news_uploads_view.dart';
 import '../../settings/views/settings_view.dart';
@@ -32,7 +32,7 @@ class NavbarView extends GetView<NavbarController> {
                   child: Obx(() {
                     switch (controller.currentIndex.value) {
                       case 0:
-                        return AdminView();
+                        return AdminMainView();
                       case 1:
                         return CreateNewsView();
                       case 2:
@@ -40,7 +40,7 @@ class NavbarView extends GetView<NavbarController> {
                       case 3:
                         return SettingsView();
                       default:
-                        return AdminView();
+                        return AdminMainView();
                     }
                   }),
                 ),

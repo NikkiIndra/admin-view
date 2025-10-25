@@ -14,9 +14,8 @@ import '../controllers/admin_view_controller.dart';
 
 class AdminView extends GetView<AdminController> {
   AdminView({super.key});
-  final controllerTrenreport = Get.find<TrenReportLocationController>();
-  final controllerR = Get.find<ReportSummaryController>();
-
+  late final controllerTrenreport = Get.find<TrenReportLocationController>();
+  late final controllerR = Get.find<ReportSummaryController>();
   // Hapus late final dan gunakan GetX reactive approach
   // int get totalReports => controllerTrenreport.reportPoints.length;
 
@@ -397,27 +396,3 @@ class AdminView extends GetView<AdminController> {
     );
   }
 }
-
-// class _ReportSummary extends StatelessWidget {
-//   final String label;
-//   final String value;
-
-//   const _ReportSummary({required this.label, required this.value});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         Text(
-//           value,
-//           style: const TextStyle(
-//             fontSize: 22,
-//             fontWeight: FontWeight.bold,
-//             color: Colors.greenAccent,
-//           ),
-//         ),
-//         Text(label, style: const TextStyle(color: Colors.white70)),
-//       ],
-//     );
-//   }
-// }

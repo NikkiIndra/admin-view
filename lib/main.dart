@@ -6,7 +6,6 @@ import 'app/routes/app_pages.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize services - TIDAK PERLU await untuk GetxService
   Get.put(AdminService());
   runApp(
     GetMaterialApp(

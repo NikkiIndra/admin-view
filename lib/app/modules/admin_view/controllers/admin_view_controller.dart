@@ -1,15 +1,29 @@
-// lib/app/modules/admin/controllers/admin_view_controller.dart
-import 'dart:math';
-
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../../data/model/report_model.dart';
 import '../../../data/service/admin_service.dart';
+import '../../../data/service/api_service.dart';
+import '../../admin_maps_report/controllers/admin_maps_report_controller.dart';
 
 class AdminController extends GetxController {
   final AdminService adminService = Get.find<AdminService>();
+  final AdminMapsReportController adminMaps = Get.put(
+    AdminMapsReportController(),
+  );
 
   var loading = false.obs;
-  var report = Rxn<Map<String, dynamic>>();
   var showMapView = false.obs;
+
+  /// Sekarang pakai model `Report` agar rapi
+  var report = Rxn<Report>();
+
+  var mapController = Rxn<GoogleMapController>();
+  final markers = <Marker>{}.obs;
+
+  final adminLocation = LatLng(-6.200, 106.816);
+
+  /// ID laporan terakhir yang sudah ditangani
+  int? lastHandledReportId;
 
   @override
   void onInit() {
@@ -18,64 +32,119 @@ class AdminController extends GetxController {
     fetchInitialData();
   }
 
-  void setupReactiveListener() {
-    // Listen to real-time reports from WebSocket
-    ever(adminService.latestReport, (newReport) {
-      if (newReport != null && newReport['type'] == 'new_report') {
-        final reportData = newReport['data'];
-        print('🎯 Processing new report: $reportData');
+  // ✅ Cek laporan baru dari API (manual polling)
+  Future<void> checkForNewReports() async {
+    final res = await ApiService.get('/api/report/list/baru', auth: true);
 
-        // Update report data
-        report.value = {
-          'pelapor': reportData['pelapor'],
-          'category': reportData['category'],
-          'rt': reportData['rt'],
-          'rw': reportData['rw'],
-          'blok': reportData['blok'],
-          'desa': reportData['desa'],
-          'timestamp': reportData['timestamp'],
-          // Tambahkan koordinat dummy (sesuaikan dengan data asli)
-          'latitude':
-              -6.2 + (Random().nextDouble() * 0.1 - 0.05), // Random coordinates
-          'longitude': 106.8 + (Random().nextDouble() * 0.1 - 0.05),
-        };
+    if (res['status'] == 'success' && res['data'] != null) {
+      final List data = res['data'];
 
-        showMapView.value = true; // Auto-switch to map view
+      if (data.isNotEmpty) {
+        final latest = data.first;
+        final latestId = latest['id'];
 
-        // Auto hide map view after 30 seconds
-        Future.delayed(Duration(seconds: 30), () {
-          if (report.value?['pelapor'] == reportData['pelapor']) {
-            showMapView.value = false;
-            report.value = null;
-          }
-        });
-      }
-    });
-  }
-
-  Future<void> fetchInitialData() async {
-    // Only fetch initial data if no real-time data available
-    if (report.value == null) {
-      loading.value = true;
-      final data = await AdminService.getLatestReport();
-      loading.value = false;
-      if (data != null) {
-        report.value = data;
+        // 🚫 Jangan tampilkan kalau sudah pernah ditangani
+        if (lastHandledReportId != latestId) {
+          report.value = Report.fromJson(latest);
+          showMapView.value = true;
+          updateMarkers();
+          print("🆕 Ada laporan baru ID: $latestId");
+        } else {
+          print("ℹ️ Laporan ID $latestId sudah ditangani.");
+        }
       }
     }
   }
 
-  void switchToMapView() {
-    showMapView.value = true;
+  // ✅ Dengarkan laporan baru dari socket
+  void setupReactiveListener() {
+    ever(adminService.latestReport, (newReport) {
+      if (newReport != null) {
+        final newId = newReport['id'];
+        if (lastHandledReportId != newId) {
+          report.value = Report.fromJson(newReport);
+          showMapView.value = true;
+          updateMarkers();
+          print("📡 Realtime: menampilkan laporan ID $newId");
+        } else {
+          print("ℹ️ Laporan realtime ID $newId diabaikan (sudah ditangani).");
+        }
+      }
+    });
   }
 
-  void switchToListView() {
-    showMapView.value = false;
+  // ✅ Fetch laporan awal ketika app dibuka
+  Future<void> fetchInitialData() async {
+    loading.value = true;
+    final latest = await adminService.fetchReports(status: 'baru');
+    loading.value = false;
+
+    if (latest.isNotEmpty) {
+      final first = latest.first;
+      final id = first['id'];
+
+      if (lastHandledReportId != id) {
+        report.value = Report.fromJson(first);
+        showMapView.value = true;
+        updateMarkers();
+        print("📍 Initial laporan ID: $id");
+      }
+    }
   }
 
+  // ✅ Update posisi marker di peta
+  void updateMarkers() {
+    markers.clear();
+
+    // Marker admin
+    markers.add(
+      Marker(
+        markerId: const MarkerId('admin_location'),
+        position: adminLocation,
+        infoWindow: const InfoWindow(title: 'Bale Desa (Admin)'),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+      ),
+    );
+
+    // Marker laporan
+    if (report.value != null) {
+      final r = report.value!;
+      markers.add(
+        Marker(
+          markerId: const MarkerId('report_location'),
+          position: LatLng(r.latitude ?? 0, r.longitude ?? 0),
+          infoWindow: InfoWindow(
+            title: r.jenisLaporan ?? '-',
+            snippet: r.namaPelapor ?? '-',
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      );
+    }
+  }
+
+  // ✅ Tombol "Kembali ke Dashboard"
   void acknowledgeReport() {
+    if (report.value != null) {
+      lastHandledReportId = report.value!.id;
+    }
+
+    // Reset tampilan
     report.value = null;
     showMapView.value = false;
-    Get.snackbar('Success', 'Laporan telah ditandai selesai');
+    markers.clear();
+
+    Get.snackbar(
+      'Selesai',
+      'Laporan ditandai selesai dan dashboard ditampilkan.',
+    );
+  }
+
+  // ✅ Reset penuh cache
+  void resetCache() {
+    report.value = null;
+    showMapView.value = false;
+    lastHandledReportId = null;
+    markers.clear();
   }
 }

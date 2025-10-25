@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:multi_admin/app/modules/admin_maps_report/controllers/admin_maps_report_controller.dart';
 import 'package:multi_admin/app/modules/admin_view/controllers/admin_view_controller.dart';
 import 'package:multi_admin/app/modules/create_news/controllers/create_news_controller.dart';
 import 'package:multi_admin/app/modules/navbar/controllers/navbar_controller.dart';
@@ -51,5 +52,9 @@ class GlobalBindings extends Bindings {
       fenix: true, // Tambahkan ini
     );
     Get.lazyPut<UserDetailController>(() => UserDetailController());
+    Get.lazyPut<AdminMapsReportController>(
+      () => AdminMapsReportController(),
+      fenix: true,
+    );
   }
 }

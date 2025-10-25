@@ -1,85 +1,3 @@
-// // lib/data/service/admin_service.dart
-// import 'package:get/get.dart';
-// import 'package:socket_io_client/socket_io_client.dart' as IO;
-// import 'api_service.dart';
-
-// class AdminService extends GetxService {
-//   static AdminService get instance => Get.find<AdminService>();
-
-//   late IO.Socket socket;
-//   var isConnected = false.obs;
-//   var latestReport = Rxn<Map<String, dynamic>>();
-
-//   @override
-//   void onInit() {
-//     super.onInit();
-//     initSocket(); // Akan auto dipanggil ketika service di-init
-//   }
-
-//   Future<void> initSocket() async {
-//     try {
-//       // Get token dari secure storage
-//       final token = await ApiService.getToken();
-//       print('🔑 Token for WebSocket: $token');
-
-//       socket = IO.io(
-//         'http://192.168.0.99:5000',
-//         // 'http://10.192.167.57:5000',
-//         IO.OptionBuilder()
-//             .setTransports(['websocket'])
-//             .enableAutoConnect()
-//             .setExtraHeaders({'Authorization': 'Bearer $token'})
-//             .build(),
-//       );
-
-//       socket.onConnect((_) {
-//         print('✅ Admin WebSocket connected');
-//         isConnected.value = true;
-//       });
-
-//       socket.onDisconnect((_) {
-//         print('❌ Admin WebSocket disconnected');
-//         isConnected.value = false;
-//       });
-
-//       // Listen untuk event new_report dari server
-//       socket.on('new_report', (data) {
-//         print('📢 New report received: $data');
-//         if (data is Map<String, dynamic>) {
-//           latestReport.value = data;
-
-//           // Show notification
-//           Get.snackbar(
-//             'Laporan Baru',
-//             '${data['data']['pelapor']} - ${data['data']['category']}',
-//             duration: Duration(seconds: 10),
-//             snackPosition: SnackPosition.TOP,
-//           );
-//         }
-//       });
-
-//       socket.onError((error) => print('WebSocket error: $error'));
-//     } catch (e) {
-//       print('Error initializing WebSocket: $e');
-//     }
-//   }
-
-//   // Method untuk fetch data awal (fallback)
-//   static Future<Map<String, dynamic>?> getLatestReport() async {
-//     final res = await ApiService.get("laporan-terbaru", auth: true);
-//     if (res["success"] == true) {
-//       return res["report"];
-//     }
-//     return null;
-//   }
-
-//   @override
-//   void onClose() {
-//     socket.disconnect();
-//     super.onClose();
-//   }
-// }
-// lib/data/service/admin_service.dart
 import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'api_service.dart';
@@ -94,59 +12,101 @@ class AdminService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    initSocket(); // Akan auto dipanggil ketika service di-init
+    initSocket();
   }
 
   Future<void> initSocket() async {
     try {
-      // Jika tidak pakai token, langsung connect saja
+      final user = await ApiService.getAdminSession();
+      final userId = user['id'];
+      final desaId = user['desa_id'];
+      final role = user['role'];
+
+      // Cegah connect kalau data user belum lengkap
+      if (userId == null || desaId == null) {
+        print("⚠️ Tidak bisa inisialisasi socket: user belum login");
+        return;
+      }
+
       socket = IO.io(
-        'http://192.168.0.99:5000', // ganti IP sesuai server Flask kamu
+        'http://192.168.137.146:5000?user_id=$userId&desa_id=$desaId&role=$role',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .enableAutoConnect()
+            .enableReconnection() // 🔁 aktifkan auto reconnect
+            .setReconnectionAttempts(10)
+            .setReconnectionDelay(2000)
             .build(),
       );
 
       socket.onConnect((_) {
-        print('✅ Admin WebSocket connected');
         isConnected.value = true;
+        print('✅ SOCKET CONNECTED');
+
+        // Join ke room sesuai desa admin
+        socket.emit('join_room', {'desa_id': desaId, 'user_id': userId});
+        print('🟢 Joined room desa_$desaId');
+      });
+
+      socket.onReconnect((_) {
+        print('♻️ Reconnected ke server');
+        socket.emit('join_room', {'desa_id': desaId, 'user_id': userId});
       });
 
       socket.onDisconnect((_) {
-        print('❌ Admin WebSocket disconnected');
         isConnected.value = false;
+        print('🔴 Socket disconnected');
       });
 
-      // Listen event laporan baru dari server
-      socket.on('new_report', (data) {
-        print('📢 New report received: $data');
-        if (data is Map<String, dynamic>) {
-          latestReport.value = data;
+      socket.onConnectError((err) => print('❌ Connect error: $err'));
+      socket.onError((err) => print('⚠️ Socket error: $err'));
 
-          // Tampilkan notifikasi snackbar
+      // 🔔 Event laporan baru dari server
+      socket.on('new_report', (data) {
+        try {
+          final parsed = Map<String, dynamic>.from(data);
+          latestReport.value = parsed;
+
           Get.snackbar(
-            'Laporan Baru',
-            '${data['data']['pelapor']} - ${data['data']['category']}',
-            duration: const Duration(seconds: 10),
-            snackPosition: SnackPosition.TOP,
+            '📢 Laporan Baru',
+            '${parsed['nama_pelapor']} - ${parsed['jenis_laporan']}',
+            duration: const Duration(seconds: 3),
           );
+        } catch (e) {
+          print("⚠️ Gagal parsing event 'new_report': $e");
         }
       });
-
-      socket.onError((error) => print('WebSocket error: $error'));
     } catch (e) {
-      print('Error initializing WebSocket: $e');
+      print('💥 Error initializing WebSocket: $e');
+      // 🔁 Coba lagi 3 detik kemudian
+      Future.delayed(const Duration(seconds: 3), initSocket);
     }
   }
 
-  // Fetch fallback data (tanpa token)
-  static Future<Map<String, dynamic>?> getLatestReport() async {
-    final res = await ApiService.get("laporan-terbaru"); // auth: true dihapus
-    if (res["success"] == true) {
-      return res["report"];
+  // Fallback HTTP fetch (ambil laporan terbaru)
+  Future<List<Map<String, dynamic>>> fetchReports({
+    String status = 'baru',
+  }) async {
+    final resp = await ApiService.get('api/report/list/$status', auth: true);
+    if (resp['status'] == 'success') {
+      final data = resp['data'] as List;
+      return data
+          .map<Map<String, dynamic>>(
+            (e) => {
+              'id': e['id'],
+              'jenis_laporan': e['jenis_laporan'],
+              'nama_pelapor': e['nama_pelapor'],
+              'alamat': e['alamat'],
+              'deskripsi': e['deskripsi'],
+              'latitude': double.tryParse(e['latitude'].toString()) ?? 0.0,
+              'longitude': double.tryParse(e['longitude'].toString()) ?? 0.0,
+              'status': e['status'],
+              'created_at': e['created_at'],
+            },
+          )
+          .toList();
     }
-    return null;
+    return [];
   }
 
   @override

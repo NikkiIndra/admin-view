@@ -13,6 +13,7 @@ abstract class Routes {
   static const CREATE_NEWS = _Paths.CREATE_NEWS;
   static const NEWS_UPLOADS = _Paths.NEWS_UPLOADS;
   static const SETTINGS = _Paths.SETTINGS;
+  static const ADMIN_MAPS_REPORT = _Paths.ADMIN_MAPS_REPORT;
 }
 
 abstract class _Paths {
@@ -27,4 +28,5 @@ abstract class _Paths {
   static const CREATE_NEWS = '/create-news';
   static const NEWS_UPLOADS = '/news-uploads';
   static const SETTINGS = '/settings';
+  static const ADMIN_MAPS_REPORT = '/admin-maps-report';
 }

@@ -7,8 +7,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiService {
   static const _base = String.fromEnvironment(
     'API_BASE',
-    // defaultValue: 'http://10.192.167.57:5000',
-    defaultValue: 'http://192.168.0.99:5000',
+    // defaultValue: 'http://10.42.217.57:5000',
+    // defaultValue: 'http://98.94.4.205:5000',
+    defaultValue: 'http://192.168.137.146:5000',
   );
 
   static final _storage = const FlutterSecureStorage();
