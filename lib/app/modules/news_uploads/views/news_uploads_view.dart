@@ -312,7 +312,6 @@ class NewsUploadsView extends GetView<NewsUploadsController> {
       onSelected: (value) {
         if (value == 'edit') {
           Get.snackbar('Edit', 'Fitur edit untuk "${news.title}"');
-          // TODO: Navigasi ke halaman edit, misalnya:
           // Get.toNamed('/edit-news', arguments: news);
         } else if (value == 'delete') {
           _showDeleteConfirmation(news);

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:multi_admin/app/modules/admin_maps_report/views/admin_maps_report_view.dart';
+import 'package:multi_admin/app/modules/navbar/views/navbar_view.dart';
 import 'package:multi_admin/app/modules/tren_report_location/controllers/tren_report_location_controller.dart';
 import 'package:multi_admin/app/routes/app_pages.dart';
 import 'package:multi_admin/app/styles/apps_style.dart';
@@ -16,6 +18,7 @@ class AdminView extends GetView<AdminController> {
   AdminView({super.key});
   late final controllerTrenreport = Get.find<TrenReportLocationController>();
   late final controllerR = Get.find<ReportSummaryController>();
+  late final trenMapsC = Get.find<TrenReportLocationController>();
   // Hapus late final dan gunakan GetX reactive approach
   // int get totalReports => controllerTrenreport.reportPoints.length;
 
@@ -82,7 +85,7 @@ class AdminView extends GetView<AdminController> {
                                 Expanded(
                                   flex: 1,
                                   child: Container(
-                                    height: constraints.maxHeight * 0.35,
+                                    height: constraints.maxHeight * 0.45,
                                     decoration: BoxDecoration(
                                       color: Colors.white30,
                                       borderRadius: BorderRadius.circular(16),
@@ -114,7 +117,34 @@ class AdminView extends GetView<AdminController> {
                                             ),
                                           ),
                                         ),
-
+                                        Positioned(
+                                          top: 5,
+                                          left: 5,
+                                          right: 5,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(
+                                                0.60,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            height:
+                                                constraints.maxHeight * 0.05,
+                                            width: constraints.maxWidth,
+                                            child: Center(
+                                              child: Text(
+                                                "Tren Lokasi Laporan Emergency",
+                                                style: AppStyles.bodyTextWhite
+                                                    .copyWith(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                         // Lapisan klik di atas map
                                         Positioned.fill(
                                           child: GestureDetector(
@@ -140,23 +170,51 @@ class AdminView extends GetView<AdminController> {
                                                     .reportPoints
                                                     .length;
                                             return Container(
-                                              height: 100,
-                                              width: 100,
+                                              height: 120,
+                                              width: 130,
                                               padding: const EdgeInsets.all(16),
                                               decoration: BoxDecoration(
                                                 color: Colors.redAccent
-                                                    .withOpacity(0.85),
+                                                    .withOpacity(0.55),
                                                 shape: BoxShape.circle,
                                               ),
                                               child: Padding(
                                                 padding: EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  'Total $totalReports\nlaporan masuk ',
+                                                child: Text.rich(
+                                                  softWrap: true,
                                                   textAlign: TextAlign.center,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.bold,
+                                                  TextSpan(
+                                                    children: [
+                                                      TextSpan(
+                                                        text: 'Total ',
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 13,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      TextSpan(
+                                                        text: '$totalReports',
+                                                        style: const TextStyle(
+                                                          color: Colors
+                                                              .yellowAccent,
+                                                          fontSize: 13,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      const TextSpan(
+                                                        text:
+                                                            ' tombol emergency digunakan',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 13,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),
@@ -169,14 +227,17 @@ class AdminView extends GetView<AdminController> {
                                 ),
                                 SizedBox(width: 8),
                                 Expanded(
-                                  flex: 1,
                                   child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Container(
-                                        height: constraints.maxHeight * 0.17,
+                                        height: constraints.maxHeight * 0.25,
                                         margin: const EdgeInsets.only(right: 8),
+                                        padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.3),
+                                          color: AppColors.primaryBlue,
                                           borderRadius: BorderRadius.circular(
                                             16,
                                           ),
@@ -187,28 +248,32 @@ class AdminView extends GetView<AdminController> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Text(
-                                                "Data Pelapor",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                "detail warga yang menggunakan tombol emergency",
+                                                textAlign: TextAlign.center,
+                                                style: AppStyles.authText
+                                                    .copyWith(
+                                                      fontSize: 16,
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                               ),
-                                              SizedBox(height: 8),
+                                              SizedBox(height: 50),
                                               ElevatedButton(
                                                 onPressed: () => Get.toNamed(
                                                   Routes.REPORT_HISTORY,
                                                 ),
                                                 style: ElevatedButton.styleFrom(
-                                                  backgroundColor: const Color(
-                                                    0xFF2A36EE,
-                                                  ),
+                                                  backgroundColor:
+                                                      Colors.deepPurpleAccent,
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                           12,
                                                         ),
                                                   ),
+                                                  elevation: 3,
+                                                  shadowColor: Colors.black,
                                                 ),
                                                 child: Text(
                                                   "Lihat Data Pelapor",
@@ -221,12 +286,12 @@ class AdminView extends GetView<AdminController> {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(height: 10),
+                                      SizedBox(height: 15),
                                       Container(
                                         height: constraints.maxHeight * 0.16,
                                         margin: const EdgeInsets.only(right: 8),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.3),
+                                          color: AppColors.primaryBlue,
                                           borderRadius: BorderRadius.circular(
                                             16,
                                           ),
@@ -237,7 +302,7 @@ class AdminView extends GetView<AdminController> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Text(
-                                                "Detail Warga Terdaftar",
+                                                "Warga yang sudah terdaftar",
                                                 style: TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 16,
@@ -255,7 +320,7 @@ class AdminView extends GetView<AdminController> {
                                                   ),
                                                   style: ElevatedButton.styleFrom(
                                                     backgroundColor:
-                                                        const Color(0xFF2A36EE),
+                                                        Colors.deepPurpleAccent,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -330,6 +395,16 @@ class AdminView extends GetView<AdminController> {
                                           isLoading:
                                               controllerR.isLoading.value,
                                         ),
+                                        ReportSummary(
+                                          label:
+                                              "Tahun ${controllerR.currentYear.value}",
+                                          value: controllerR.isLoading.value
+                                              ? "0"
+                                              : controllerR.yearTotal.value
+                                                    .toString(),
+                                          isLoading:
+                                              controllerR.isLoading.value,
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -348,7 +423,6 @@ class AdminView extends GetView<AdminController> {
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // Grafik tren waktu
                             GetBuilder<ChartController>(
@@ -359,16 +433,70 @@ class AdminView extends GetView<AdminController> {
                             ),
                             const SizedBox(height: 16),
                             // Statistik total laporan
-                            Container(
-                              height: 100,
-                              decoration: BoxDecoration(
-                                color: Colors.white30,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  "Total Laporan Sepanjang Waktu",
-                                  style: TextStyle(color: Colors.white70),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Get.toNamed(Routes.ADMIN_MAPS_REPORT);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 65),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white38,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    clipBehavior: Clip
+                                        .antiAlias, // biar radiusnya nge-clip
+                                    child: Stack(
+                                      children: [
+                                        // langsung tampilkan peta mini di dalam container
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          child: AdminMapsReportView(
+                                            isPreview: true,
+                                          ),
+                                        ),
+
+                                        // overlay teks di tengah
+                                        Positioned(
+                                          top: 10,
+                                          left: 20,
+                                          right: 20,
+                                          child: Container(
+                                            alignment: Alignment.center,
+                                            height:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.height *
+                                                0.05,
+                                            width:
+                                                MediaQuery.of(
+                                                  context,
+                                                ).size.width *
+                                                0.3,
+                                            decoration: BoxDecoration(
+                                              color: Colors.black54,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            padding: EdgeInsets.all(8),
+                                            child: Text(
+                                              "klik untuk memperbesar peta",
+                                              style: AppStyles.authText
+                                                  .copyWith(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -388,6 +516,7 @@ class AdminView extends GetView<AdminController> {
           final controller = Get.find<ChartController>();
           await controllerR.refreshSummary();
           await controller.chartRefresh();
+          await trenMapsC.refreshMap();
           // Force UI update
           controller.update();
         },

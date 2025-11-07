@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../data/service/admin_service.dart';
 import '../../../data/service/api_service.dart';
 import '../../../routes/app_pages.dart';
 
@@ -79,7 +80,7 @@ class SigninController extends GetxController {
     try {
       loading.value = true;
 
-      final res = await ApiService.post("login", {
+      final res = await ApiService.post("/login", {
         "email": emailC.text.trim(),
         "katasandi": katasandiC.text,
       });
@@ -128,6 +129,8 @@ class SigninController extends GetxController {
             "✅ Session benar-benar tersimpan: ${await ApiService.getAdminSession()}",
           );
           Get.offAllNamed(Routes.NAVBAR);
+          final service = Get.find<AdminService>();
+          await service.initSocket();
         }
       } else {
         Get.snackbar(

@@ -10,9 +10,9 @@ class AdminMainView extends GetView<AdminController> {
 
   @override
   Widget build(BuildContext context) {
+        Get.find<AdminMapsReportController>();
     return Obx(() {
       if (controller.showMapView.value && controller.report.value != null) {
-        Get.put(AdminMapsReportController());
         return const AdminMapsReportView();
       }
 

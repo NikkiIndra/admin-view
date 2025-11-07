@@ -1,21 +1,21 @@
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../data/model/report_model.dart';
 import '../../../data/service/admin_service.dart';
 import '../../../data/service/api_service.dart';
-import '../../admin_maps_report/controllers/admin_maps_report_controller.dart';
 
 class AdminController extends GetxController {
   final AdminService adminService = Get.find<AdminService>();
-  final AdminMapsReportController adminMaps = Get.put(
-    AdminMapsReportController(),
-  );
-
+  // final AdminMapsReportController adminMaps = Get.put(
+  //   AdminMapsReportController(),
+  // );
+  final storage = GetStorage();
   var loading = false.obs;
   var showMapView = false.obs;
 
   /// Sekarang pakai model `Report` agar rapi
-  var report = Rxn<Report>();
+  var report = Rxn<ReportModel>();
 
   var mapController = Rxn<GoogleMapController>();
   final markers = <Marker>{}.obs;
@@ -28,13 +28,50 @@ class AdminController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    setupReactiveListener();
-    fetchInitialData();
+    showMapView.value = false;
+    report.value = null;
+    _loadLastHandledReport();
+    fetchInitialData(); // fallback HTTP kalau socket belum kirim
+    _listenToRealtimeReports();
+  }
+
+  void _listenToRealtimeReports() {
+    ever(adminService.latestReport, (newReport) {
+      if (newReport != null) {
+        final newId = newReport['id'];
+        if (lastHandledReportId != newId) {
+          report.value = ReportModel.fromJson(newReport);
+          showMapView.value = true;
+          updateMarkers();
+          print("📡 Realtime: menampilkan laporan ID $newId");
+        } else {
+          print("ℹ️ Laporan realtime ID $newId diabaikan (sudah ditangani).");
+        }
+      }
+    });
+  }
+
+  void _loadLastHandledReport() {
+    lastHandledReportId = storage.read('lastHandledReportId') ?? 0;
+  }
+
+  void markReportAsHandled() {
+    if (report.value != null) {
+      lastHandledReportId = report.value!.id ?? 0;
+      storage.write('lastHandledReportId', lastHandledReportId);
+
+      print(
+        "✅ Laporan ${report.value!.id} ditandai selesai dan disimpan di storage.",
+      );
+
+      showMapView.value = false;
+      report.value = null;
+    }
   }
 
   // ✅ Cek laporan baru dari API (manual polling)
   Future<void> checkForNewReports() async {
-    final res = await ApiService.get('/api/report/list/baru', auth: true);
+    final res = await ApiService.get('/report/list/baru', auth: true);
 
     if (res['status'] == 'success' && res['data'] != null) {
       final List data = res['data'];
@@ -45,7 +82,7 @@ class AdminController extends GetxController {
 
         // 🚫 Jangan tampilkan kalau sudah pernah ditangani
         if (lastHandledReportId != latestId) {
-          report.value = Report.fromJson(latest);
+          report.value = ReportModel.fromJson(latest);
           showMapView.value = true;
           updateMarkers();
           print("🆕 Ada laporan baru ID: $latestId");
@@ -62,7 +99,7 @@ class AdminController extends GetxController {
       if (newReport != null) {
         final newId = newReport['id'];
         if (lastHandledReportId != newId) {
-          report.value = Report.fromJson(newReport);
+          report.value = ReportModel.fromJson(newReport);
           showMapView.value = true;
           updateMarkers();
           print("📡 Realtime: menampilkan laporan ID $newId");
@@ -84,7 +121,7 @@ class AdminController extends GetxController {
       final id = first['id'];
 
       if (lastHandledReportId != id) {
-        report.value = Report.fromJson(first);
+        report.value = ReportModel.fromJson(first);
         showMapView.value = true;
         updateMarkers();
         print("📍 Initial laporan ID: $id");

@@ -2,7 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../admin_view/views/adminView.dart';
+import '../../admin_view/views/admin_main_view.dart';
 import '../controllers/navbar_controller.dart';
 import '../../create_news/views/create_news_view.dart';
 import '../../news_uploads/views/news_uploads_view.dart';

@@ -8,6 +8,7 @@ class TrenReportLocationController extends GetxController {
   var isLoading = false.obs;
   var reports = <HistoryReportModel>[].obs;
   var isMapInitializing = true.obs;
+  var hasFetched = false.obs;
   // HAPUS BARIS INI: var reportPoint = <ReportPoints>[].obs;
 
   @override
@@ -16,6 +17,10 @@ class TrenReportLocationController extends GetxController {
     _initializeMap();
   }
 
+
+Future<void> refreshMap() async {
+    await _initializeMap();
+  }
   Future<void> _initializeMap() async {
     try {
       isMapInitializing(true);
@@ -35,17 +40,30 @@ class TrenReportLocationController extends GetxController {
       .toList();
 
   /// Dapatkan titik tengah otomatis
+  /// Auto-center ke cluster dengan jumlah titik terbanyak
   LatLng get mapCenter {
     final pts = reportPoints;
     if (pts.isEmpty) return const LatLng(-6.2, 106.816666);
-    final avgLat =
-        pts.map((e) => e.latitude).reduce((a, b) => a + b) / pts.length;
-    final avgLng =
-        pts.map((e) => e.longitude).reduce((a, b) => a + b) / pts.length;
-    return LatLng(avgLat, avgLng);
+
+    // Cluster semua titik
+    final clusters = clusterPoints(pts, radius: 150); // 150 meter radius
+    if (clusters.isEmpty) return pts.first;
+
+    // Cari cluster dengan jumlah titik terbanyak
+    clusters.sort((a, b) => b.points.length.compareTo(a.points.length));
+    final largestCluster = clusters.first;
+
+    print(
+      "📍 Cluster terbesar berisi ${largestCluster.points.length} titik, center di: "
+      "${largestCluster.center.latitude}, ${largestCluster.center.longitude}",
+    );
+
+    return largestCluster.center;
   }
 
   Future<void> fetchTrenReport() async {
+    if (hasFetched.value) return;
+    hasFetched.value = true;
     try {
       isLoading.value = true;
 

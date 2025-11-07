@@ -264,7 +264,10 @@ class UserDetailView extends GetView<UserDetailController> {
                     padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0XFF5340E1), Color(0XFF12B9F5)],
+                        colors: [
+                          Color.fromARGB(255, 24, 24, 54),
+                          Color(0XFF0800FF),
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -295,10 +298,14 @@ class UserDetailView extends GetView<UserDetailController> {
                           icon: Icon(
                             Icons.phone,
                             size: isSmallScreen ? 12 : 14,
+                            color: Colors.white,
                           ),
                           label: Text(
                             "Hubungi",
-                            style: TextStyle(fontSize: isSmallScreen ? 10 : 12),
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 10 : 12,
+                              color: Colors.white,
+                            ),
                           ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,

@@ -6,6 +6,21 @@ class ChartController extends GetxController {
   var chartData = <Map<String, dynamic>>[].obs;
   var totalReports = 0.obs;
 
+  final List<String> allMonths = const [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mei",
+    "Jun",
+    "Jul",
+    "Agu",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Des",
+  ];
+
   @override
   void onInit() {
     super.onInit();
@@ -26,10 +41,10 @@ class ChartController extends GetxController {
 
         // Hitung total laporan
         totalReports.value = chartData.fold(0, (sum, item) {
-          return sum +
-              (item['kemalingan'] as int) +
-              (item['medis'] as int) +
-              (item['kebakaran'] as int);
+          final kemalingan = (item['kemalingan'] ?? 0) as num;
+          
+          final kebakaran = (item['kebakaran'] ?? 0) as num;
+          return sum + kemalingan.toInt() + kebakaran.toInt();
         });
 
         print("📊 Data chart loaded: ${chartData.length} bulan");
@@ -43,16 +58,26 @@ class ChartController extends GetxController {
     }
   }
 
-  // Method untuk mendapatkan data dalam format yang sesuai untuk chart
+  // --- Perbaikan di sini ---
   List<Map<String, dynamic>> getFormattedChartData() {
-    return chartData.map((item) {
-      return {
-        'month': item['month'],
-        'kemalingan': item['kemalingan'] ?? 0,
-        'medis': item['medis'] ?? 0,
-        'kebakaran': item['kebakaran'] ?? 0,
-      };
-    }).toList();
+    final dataMap = <String, Map<String, dynamic>>{
+      for (var m in allMonths)
+        m: {'month': m, 'kemalingan': 0, 'kebakaran': 0},
+    };
+
+    for (var item in chartData) {
+      final monthFull = item['month'] ?? '';
+      // Ambil 3 huruf pertama saja agar cocok: "Okt 2025" -> "Okt"
+      final month = monthFull.split(' ').first;
+
+      if (dataMap.containsKey(month)) {
+        dataMap[month]!['kemalingan'] = item['kemalingan'] ?? 0;
+        
+        dataMap[month]!['kebakaran'] = item['kebakaran'] ?? 0;
+      }
+    }
+
+    return dataMap.values.toList();
   }
 
   Future<void> chartRefresh() async {

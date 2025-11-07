@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -6,8 +7,9 @@ import '../../../routes/app_pages.dart';
 import '../../admin_view/controllers/admin_view_controller.dart';
 import '../controllers/admin_maps_report_controller.dart';
 
-class AdminMapsReportView extends StatelessWidget {
-  const AdminMapsReportView({super.key});
+class AdminMapsReportView extends GetView<AdminMapsReportController> {
+  final bool isPreview;
+  const AdminMapsReportView({super.key, this.isPreview = false});
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +17,9 @@ class AdminMapsReportView extends StatelessWidget {
     final mapController = Get.put(AdminMapsReportController());
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Laporan Masuk (OpenStreetMap)"),
-        centerTitle: true,
-      ),
+      appBar: isPreview
+          ? null
+          : AppBar(title: const Text("Laporan Masuk"), centerTitle: true),
       body: Obx(() {
         if (mapController.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -40,9 +41,31 @@ class AdminMapsReportView extends StatelessWidget {
         final List<Marker> markers = [
           Marker(
             point: LatLng(desaLat, desaLon),
-            width: 40,
-            height: 40,
-            child: const Icon(Icons.home, color: Colors.blueAccent, size: 36),
+            width: 90,
+            height: 90,
+            child: Column(
+              children: [
+                Text(
+                  "Kantor Desa",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                    shadows: [
+                      Shadow(
+                        offset: Offset(0, 0),
+                        blurRadius: 3,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  CupertinoIcons.house_fill,
+                  color: Colors.blueAccent,
+                  size: 25,
+                ),
+              ],
+            ),
           ),
           if (report != null)
             Marker(
@@ -101,81 +124,89 @@ class AdminMapsReportView extends StatelessWidget {
               bottom: 10,
               right: 10,
               left: 10,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: report == null
-                    ? const Center(
-                        child: Text(
-                          "Belum ada laporan baru.",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      )
-                    : Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 4,
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.report,
-                            color: Colors.redAccent,
-                          ),
-                          title: Text(report.jenisLaporan ?? "Tidak diketahui"),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Pelapor: ${report.namaPelapor ?? '-'}"),
-                              Text(
-                                "Status: ${report.status ?? 'Belum diproses'}",
-                              ),
-                            ],
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () async {
-                            await mapController.fetchRouteToReport(
-                              report.latitude!,
-                              report.longitude!,
-                            );
-                            _showDetail(context, report);
-                          },
-                        ),
+              child: Obx(() {
+                final report = controller.latestReport.value;
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-              ),
+                    ],
+                  ),
+                  child: report == null
+                      ? const Center(
+                          child: Text(
+                            "Belum ada laporan terbaru.",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        )
+                      : Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.report,
+                              color: Colors.redAccent,
+                            ),
+                            title: Text(
+                              report.jenisLaporan ?? "Tidak diketahui",
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text("Pelapor: ${report.namaPelapor ?? '-'}"),
+                                Text("Deskripsi: ${report.deskripsi ?? '-'}"),
+                                Text(
+                                  "Status: ${report.status ?? 'Belum diproses'}",
+                                ),
+                              ],
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () async {
+                              await controller.fetchRouteToReport(
+                                report.latitude!,
+                                report.longitude!,
+                              );
+                              controller.markReportAsHandled();
+                            },
+                          ),
+                        ),
+                );
+              }),
             ),
 
             // --- Tombol kembali ke dashboard ---
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: FloatingActionButton(
-                onPressed: () {
-                  mapController.markReportAsHandled();
-                  final adminController = Get.find<AdminController>();
-                  adminController.lastHandledReportId =
-                      adminController.report.value?.id;
-                  adminController.showMapView.value = false;
-                  mapController.markReportAsHandled();
-                  Get.toNamed(Routes.NAVBAR);
-                },
-                backgroundColor: Colors.red,
-                child: const Icon(Icons.arrow_back),
+            if (!isPreview)
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: FloatingActionButton(
+                  heroTag: 'back_fab',
+                  onPressed: () {
+                    mapController.markReportAsHandled();
+                    final adminController = Get.find<AdminController>();
+                    adminController.lastHandledReportId =
+                        adminController.report.value?.id;
+                    adminController.showMapView.value = false;
+                    mapController.markReportAsHandled();
+                    Get.toNamed(Routes.NAVBAR);
+                  },
+                  backgroundColor: Colors.red,
+                  child: const Icon(Icons.arrow_back),
+                ),
               ),
-            ),
 
             // --- Tombol reset view ke semua marker ---
             if (allPoints.length > 1)
@@ -183,6 +214,7 @@ class AdminMapsReportView extends StatelessWidget {
                 top: 16,
                 right: 16,
                 child: FloatingActionButton(
+                  heroTag: 'reset_fab',
                   backgroundColor: Colors.green,
                   child: const Icon(Icons.my_location),
                   onPressed: () => mapController.forceRefresh(),

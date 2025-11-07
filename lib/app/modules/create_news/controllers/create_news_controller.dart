@@ -64,10 +64,11 @@ class CreateNewsController extends GetxController {
       //   auth: true, // agar otomatis kirim X-User-Id & X-User-Role
       //   fileField: "image", // sesuaikan nama field di backend
       // );
-      final response = await ApiService.uploadMultipartWithQueryAuth(
+      final response = await ApiService.uploadMultipart(
         "upload-news-with-image",
         fields,
         files,
+        auth: true,
         fileField: "image",
       );
 

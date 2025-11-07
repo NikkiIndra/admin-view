@@ -6,8 +6,10 @@ class ReportSummaryController extends GetxController {
   var todayCount = 0.obs;
   var weekCount = 0.obs;
   var monthCount = 0.obs;
+  var yearTotal = 0.obs;
   var currentWeek = "".obs;
   var currentMonth = "".obs;
+  var currentYear = "".obs;
 
   @override
   void onInit() {
@@ -20,9 +22,10 @@ class ReportSummaryController extends GetxController {
       isLoading.value = true;
 
       // Tambahkan timestamp untuk prevent caching
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      // final timestamp = DateTime.now().millisecondsSinceEpoch;
       final res = await ApiService.get(
-        "messages/summary?_t=$timestamp", // Tambahkan parameter anti-cache
+        "messages/summary?", // Tambahkan parameter anti-cache
+        // "messages/summary?_t=$timestamp", // Tambahkan parameter anti-cache
         auth: true,
       );
 
@@ -31,11 +34,13 @@ class ReportSummaryController extends GetxController {
         todayCount.value = data['today'] ?? 0;
         weekCount.value = data['week'] ?? 0;
         monthCount.value = data['month'] ?? 0;
+        yearTotal.value = data['year_total'] ?? 0;
         currentWeek.value = data['current_week'] ?? "Minggu-1";
-        currentMonth.value = data['current_month'] ?? "Januari";
+        currentMonth.value = data['current_month'] ?? "Bulan";
+        currentYear.value = data['current_year']?.toString() ?? "";
 
         print(
-          "📊 Summary data loaded: Today: ${todayCount.value}, Week: ${weekCount.value}, Month: ${monthCount.value}",
+          "📊 Summary: Today=${todayCount.value}, Week=${weekCount.value}, Month=${monthCount.value}, Year=${yearTotal.value}",
         );
       } else {
         Get.snackbar(

@@ -55,7 +55,8 @@ class TimeTrendChart extends GetView<ChartController> {
                     gridData: FlGridData(
                       show: true,
                       drawVerticalLine: true,
-                      horizontalInterval: _getMaxY(chartData) / 5,
+                      horizontalInterval: (_getMaxY(chartData) / 5).clamp(1, double.infinity),
+
                       verticalInterval: 1,
                       getDrawingHorizontalLine: (value) {
                         return FlLine(
@@ -105,7 +106,7 @@ class TimeTrendChart extends GetView<ChartController> {
                         sideTitles: SideTitles(
                           showTitles: true,
                           reservedSize: 40,
-                          interval: _getMaxY(chartData) / 5,
+                          interval: (_getMaxY(chartData) / 5).clamp(1, double.infinity),
                           getTitlesWidget: (value, meta) {
                             return Text(
                               value.toInt().toString(),
@@ -141,15 +142,7 @@ class TimeTrendChart extends GetView<ChartController> {
                         belowBarData: BarAreaData(show: false),
                       ),
                       // Line Medis
-                      LineChartBarData(
-                        spots: _getSpots(chartData, 'medis'),
-                        isCurved: true,
-                        color: const Color(0xFF4ECDC4),
-                        barWidth: 3,
-                        isStrokeCapRound: true,
-                        dotData: const FlDotData(show: true),
-                        belowBarData: BarAreaData(show: false),
-                      ),
+                
                       // Line Kebakaran
                       LineChartBarData(
                         spots: _getSpots(chartData, 'kebakaran'),
@@ -203,7 +196,7 @@ class TimeTrendChart extends GetView<ChartController> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _buildLegendItem("Kemalingan", const Color(0xFFFF6B6B)),
-        _buildLegendItem("Medis", const Color(0xFF4ECDC4)),
+    
         _buildLegendItem("Kebakaran", const Color(0xFFFFD166)),
       ],
     );
@@ -236,7 +229,7 @@ class TimeTrendChart extends GetView<ChartController> {
     for (var item in data) {
       final total =
           (item['kemalingan'] as int) +
-          (item['medis'] as int) +
+         
           (item['kebakaran'] as int);
       if (total > maxValue) maxValue = total;
     }

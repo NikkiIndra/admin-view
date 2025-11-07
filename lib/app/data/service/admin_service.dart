@@ -1,89 +1,129 @@
 import 'package:get/get.dart';
+import 'package:multi_admin/app/data/model/report_model.dart';
+import 'package:multi_admin/app/modules/admin_maps_report/controllers/admin_maps_report_controller.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'api_service.dart';
 
 class AdminService extends GetxService {
   static AdminService get instance => Get.find<AdminService>();
 
-  late IO.Socket socket;
+  IO.Socket? socket;
   var isConnected = false.obs;
   var latestReport = Rxn<Map<String, dynamic>>();
+
+  
+  late final AdminMapsReportController mapController; 
 
   @override
   void onInit() {
     super.onInit();
-    initSocket();
+    // Jangan langsung initSocket() di sini, biarkan dipanggil setelah login.
+    mapController = Get.find<AdminMapsReportController>();
+    print("🟡 AdminService siap, menunggu login...");
   }
 
+  /// Dipanggil dari SigninController setelah login sukses
   Future<void> initSocket() async {
     try {
-      final user = await ApiService.getAdminSession();
-      final userId = user['id'];
-      final desaId = user['desa_id'];
-      final role = user['role'];
+      final session = await ApiService.getAdminSession();
 
-      // Cegah connect kalau data user belum lengkap
+      final userId = session['id'] ?? session['admin_id'];
+      final desaId = session['desa_id'] ?? session['desaId'];
+      final role = session['role'] ?? session['user_role'];
+      final token = session['access_token'];
+
       if (userId == null || desaId == null) {
         print("⚠️ Tidak bisa inisialisasi socket: user belum login");
+        print("📋 Session detail: $session");
         return;
       }
 
+      // Jika sudah ada koneksi lama, putus dulu
+      if (socket != null && socket!.connected) {
+        print(
+          "🔌 Socket lama ditemukan, memutus koneksi sebelum membuat baru...",
+        );
+        socket!.disconnect();
+      }
+
+      print(
+        "⚙️ Membuat koneksi socket untuk user=$userId desa=$desaId role=$role",
+      );
+
       socket = IO.io(
-        'http://192.168.137.146:5000?user_id=$userId&desa_id=$desaId&role=$role',
+        'http://192.168.137.73:5000',
         IO.OptionBuilder()
             .setTransports(['websocket'])
+            .setQuery({
+              'token': token,
+              'user_id': userId.toString(),
+              'desa_id': desaId.toString(),
+              'role': role,
+            })
             .enableAutoConnect()
-            .enableReconnection() // 🔁 aktifkan auto reconnect
+            .enableReconnection()
             .setReconnectionAttempts(10)
             .setReconnectionDelay(2000)
             .build(),
       );
 
-      socket.onConnect((_) {
+      // --- EVENT LISTENER ---
+      socket!.onConnect((_) {
         isConnected.value = true;
-        print('✅ SOCKET CONNECTED');
-
-        // Join ke room sesuai desa admin
-        socket.emit('join_room', {'desa_id': desaId, 'user_id': userId});
+        print('✅ Socket terhubung untuk admin desa $desaId');
+        socket!.emit('join_room', {'desa_id': desaId, 'user_id': userId});
         print('🟢 Joined room desa_$desaId');
       });
 
-      socket.onReconnect((_) {
+      socket!.onReconnect((_) {
         print('♻️ Reconnected ke server');
-        socket.emit('join_room', {'desa_id': desaId, 'user_id': userId});
+        socket!.emit('join_room', {'desa_id': desaId, 'user_id': userId});
       });
 
-      socket.onDisconnect((_) {
+      socket!.onDisconnect((_) {
         isConnected.value = false;
-        print('🔴 Socket disconnected');
+        print('🔴 Socket terputus');
       });
 
-      socket.onConnectError((err) => print('❌ Connect error: $err'));
-      socket.onError((err) => print('⚠️ Socket error: $err'));
+      socket!.onConnectError((err) => print('❌ Connect error: $err'));
+      socket!.onError((err) => print('⚠️ Socket error: $err'));
 
-      // 🔔 Event laporan baru dari server
-      socket.on('new_report', (data) {
+      // Event laporan baru
+      socket!.on('new_report', (data) {
         try {
           final parsed = Map<String, dynamic>.from(data);
           latestReport.value = parsed;
+
+          // ✅ Pastikan model benar-benar diubah dan memicu UI
+          final reportModel = ReportModel.fromJson(parsed);
+          mapController.activeReport.value = reportModel;
+
+                    // ✅ Tambahkan marker baru di peta
+          mapController.addReportMarker(reportModel);
 
           Get.snackbar(
             '📢 Laporan Baru',
             '${parsed['nama_pelapor']} - ${parsed['jenis_laporan']}',
             duration: const Duration(seconds: 3),
           );
+
+          print('📡 [SOCKET] Laporan baru diterima: $parsed');
         } catch (e) {
           print("⚠️ Gagal parsing event 'new_report': $e");
         }
       });
+
+      socket!.connect();
     } catch (e) {
       print('💥 Error initializing WebSocket: $e');
-      // 🔁 Coba lagi 3 detik kemudian
-      Future.delayed(const Duration(seconds: 3), initSocket);
+      Future.delayed(const Duration(seconds: 3), () async {
+        print("🔁 Coba ulang initSocket setelah 3 detik...");
+        await initSocket();
+      });
     }
   }
 
-  // Fallback HTTP fetch (ambil laporan terbaru)
+  // Ambil laporan lewat HTTP (fallback)
   Future<List<Map<String, dynamic>>> fetchReports({
     String status = 'baru',
   }) async {
@@ -109,9 +149,14 @@ class AdminService extends GetxService {
     return [];
   }
 
+  void clearReport() {
+    latestReport.value = null;
+  }
+
   @override
   void onClose() {
-    socket.disconnect();
+    socket?.disconnect();
+    print("🛑 Socket ditutup oleh AdminService");
     super.onClose();
   }
 }

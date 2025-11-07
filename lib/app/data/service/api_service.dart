@@ -9,7 +9,8 @@ class ApiService {
     'API_BASE',
     // defaultValue: 'http://10.42.217.57:5000',
     // defaultValue: 'http://98.94.4.205:5000',
-    defaultValue: 'http://192.168.137.146:5000',
+    // defaultValue: 'http://192.168.137.70:8000',
+    defaultValue: 'http://192.168.137.73:5000',
   );
 
   static final _storage = const FlutterSecureStorage();
@@ -50,7 +51,9 @@ class ApiService {
     String endpoint, {
     bool auth = false,
   }) async {
-    final url = Uri.parse("$_base/$endpoint");
+    final base = _base.replaceAll(RegExp(r'/$'), '');
+    final url = Uri.parse("$base/$endpoint");
+
     final headers = {
       "Content-Type": "application/json",
       "Cache-Control": "no-cache, no-store, must-revalidate",
@@ -60,7 +63,7 @@ class ApiService {
 
     if (auth) {
       final session = await getAdminSession();
-      if (session["admin_id"]!.isNotEmpty) {
+      if (session["admin_id"]?.isNotEmpty ?? false) {
         headers["X-User-Id"] = session["admin_id"]!;
         headers["X-User-Role"] = session["role"]!;
         headers["X-Desa-Id"] = session["desa_id"]!;
@@ -69,10 +72,10 @@ class ApiService {
     }
 
     try {
+      print("🌐 [GET] $url");
       final resp = await http
           .get(url, headers: headers)
           .timeout(const Duration(seconds: 10));
-
       print("📡 [GET] $url → ${resp.statusCode}");
       return _handleResponse(resp);
     } on SocketException {

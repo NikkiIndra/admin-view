@@ -1,4 +1,4 @@
-class Report {
+class ReportModel {
   final int? id;
   final String? jenisLaporan;
   final String? namaPelapor;
@@ -12,7 +12,7 @@ class Report {
   final double? similarityScore;
   final String? createdAt;
 
-  Report({
+  ReportModel({
     this.id,
     this.jenisLaporan,
     this.namaPelapor,
@@ -27,8 +27,8 @@ class Report {
     this.createdAt,
   });
 
-  factory Report.fromJson(Map<String, dynamic> json) {
-    return Report(
+  factory ReportModel.fromJson(Map<String, dynamic> json) {
+    return ReportModel(
       id: json["id"],
       jenisLaporan: json["jenis_laporan"],
       namaPelapor: json["nama_pelapor"],
