@@ -10,7 +10,7 @@ class ApiService {
     // defaultValue: 'http://10.42.217.57:5000',
     // defaultValue: 'http://98.94.4.205:5000',
     // defaultValue: 'http://192.168.137.70:8000',
-    defaultValue: 'http://192.168.137.73:5000',
+    defaultValue: 'http://192.168.137.1:5000',
   );
 
   static final _storage = const FlutterSecureStorage();

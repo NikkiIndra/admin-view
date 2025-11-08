@@ -51,7 +51,7 @@ class AdminService extends GetxService {
       );
 
       socket = IO.io(
-        'http://192.168.137.73:5000',
+        'http://192.168.137.1:5000',
         IO.OptionBuilder()
             .setTransports(['websocket'])
             .setQuery({
